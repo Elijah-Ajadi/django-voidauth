@@ -1,0 +1,42 @@
+<div id="void-recovery-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+    <div class="max-w-md w-full bg-slate-900 border border-primary/30 rounded-3xl p-8 space-y-6 shadow-2xl shadow-primary/10 text-white">
+        <div class="text-center space-y-2">
+            <div class="size-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            </div>
+            <h2 class="text-xl font-bold tracking-tight">Vault Identity Generated</h2>
+            <p class="text-xs text-slate-400">Save these 12 words. They are the <span class="text-primary font-bold">ONLY</span> way to recover your account.</p>
+        </div>
+
+        <div id="void-mnemonic-display" class="grid grid-cols-3 gap-2 p-4 bg-black/50 rounded-2xl border border-slate-800 font-mono text-[10px] text-primary select-all">
+            <!-- Words injected via JS -->
+        </div>
+
+        <button id="void-ack-recovery" class="w-full py-3 bg-primary text-black font-bold rounded-full text-sm hover:bg-neon-green transition-all uppercase tracking-widest">
+            I have saved my key
+        </button>
+    </div>
+</div>
+
+<script>
+window.showVoidRecovery = function(mnemonic, redirectUrl) {
+    const modal = document.getElementById('void-recovery-modal');
+    const display = document.getElementById('void-mnemonic-display');
+    const btn = document.getElementById('void-ack-recovery');
+    
+    if (!modal || !display) return;
+    
+    const words = mnemonic.split(' ');
+    display.innerHTML = words.map((w, i) => `
+        <div class="flex items-center gap-1.5 opacity-80">
+            <span class="text-slate-600">${i+1}.</span>
+            <span>${w}</span>
+        </div>
+    `).join('');
+    
+    modal.classList.remove('hidden');
+    btn.onclick = () => {
+        window.location.href = redirectUrl;
+    };
+};
+</script>

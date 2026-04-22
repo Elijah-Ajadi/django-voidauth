@@ -159,7 +159,7 @@ window.VoidAuth = (function() {
         });
 
         if (response.status === 'success') {
-            return { mnemonic, message: "Registration successful." };
+            return { success: true, mnemonic, message: "Registration successful." };
         } else {
             throw new Error(response.error);
         }

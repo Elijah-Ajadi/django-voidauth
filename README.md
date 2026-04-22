@@ -128,6 +128,57 @@ Here is a minimal implementation for a login form:
 
 ---
 
+## 🧩 Modular UI Components
+
+VoidAuth now ships with built-in Django template tags for a "plug-and-play" integration.
+
+### 1. Load the Tags
+First, load the tags in your template:
+```html
+{% load voidauth_tags %}
+```
+
+### 2. Recovery Modal (Mnemonic Display)
+Add this at the bottom of your signup/registration template. It injects a high-tech "Vault Identity" overlay that ensures users save their 12-word seed phrase before finishing registration.
+```html
+{% void_recovery_modal %}
+```
+
+**JS Trigger:**
+After calling `VoidAuth.register`, simply trigger the modal:
+```javascript
+const result = await VoidAuth.register(username, email, password);
+if (result.success) {
+    window.showVoidRecovery(result.mnemonic, '/login/'); // mnemonic and redirect URL
+}
+```
+
+### 3. Secure Login Button
+Add this inside your login form to enable passwordless authentication.
+```html
+{% void_secure_login_button redirect_url='/dashboard' %}
+```
+
+---
+
+## 🤖 Void Architect (AI Setup Assistant)
+
+The **Void Architect** is now more powerful than ever. It performs a **Deep Scan** of your project (including your custom views and templates) to perform a surgical integration.
+
+### Usage
+```bash
+# Automatically integrate VoidAuth into your existing templates
+python manage.py void_architect --auto
+```
+
+The Architect will now:
+- 🔍 **Deep Scan**: Recursively analyze your project structure to find your specific auth templates.
+- 🎨 **Smart Patching**: Use the built-in `{% voidauth_tags %}` for a clean, modular integration.
+- 🧬 **Field Detection**: Automatically detect your form field names (e.g., `password1` vs `password`) to ensure the JavaScript works out-of-the-box.
+- 🩹 **Non-Destructive**: Appends logic to the end of your files instead of overwriting them.
+
+---
+
 ## 🏗️ Security Architecture
 
 1.  **Handshake:** Client requests a `challenge` (random nonce) from the server.
