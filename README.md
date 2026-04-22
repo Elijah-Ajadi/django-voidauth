@@ -156,7 +156,7 @@ if (result.success) {
 ### 3. Secure Login Button
 Add this inside your login form to enable passwordless authentication.
 ```html
-{% void_secure_login_button redirect_url='/dashboard' %}
+{% void_secure_login_button redirect_url='/your_redirect_url' %}
 ```
 
 ### 4. Recovery Portal (Mnemonic & Password)
@@ -168,7 +168,7 @@ Add this to your login page. It injects a hidden modal that allows users to rest
 **Triggering Recovery:**
 Simply add the class `void-recover-trigger` to any link or button:
 ```html
-<a href="#" class="void-recover-trigger">Lost device? Recover Vault</a>
+<a href="#" class="void-recover-trigger">Lost device? Recover Account</a>
 ```
 
 ---
@@ -192,6 +192,7 @@ VoidAuth provides a unique dual-path recovery system that balances high security
 ## 🤖 Void Architect (AI Setup Assistant)
 
 The **Void Architect** is now more powerful than ever. It performs a **Deep Scan** of your project (including your custom views and templates) to perform a surgical integration.
+## The Void Architect is still under development and is prone to make mistakes
 
 ### Usage
 ```bash
