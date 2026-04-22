@@ -1,6 +1,7 @@
 import secrets
 import binascii
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.views import View
 from django.contrib.auth import authenticate, login
 from django.core.cache import cache
@@ -31,6 +32,9 @@ class ChallengeView(View):
 
 @method_decorator(csrf_exempt, name='dispatch') # For demo/DRF compatibility, adjust as needed
 class LoginView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'voidauth/login.html')
+
     def post(self, request, *args, **kwargs):
         username = request.POST.get('username')
         challenge = request.POST.get('challenge')
@@ -48,6 +52,9 @@ class LoginView(View):
             return JsonResponse({'status': 'error', 'message': 'Invalid signature or challenge'}, status=401)
 
 class RegisterView(View):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'voidauth/register.html')
+
     def post(self, request, *args, **kwargs):
         # Implementation for registration
         # Expects: username, email, public_key, recovery_blob
