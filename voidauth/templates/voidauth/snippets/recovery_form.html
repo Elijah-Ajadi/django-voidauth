@@ -1,0 +1,91 @@
+<div id="void-recover-modal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+    <div class="max-w-md w-full bg-slate-900 border border-primary/30 rounded-3xl p-8 space-y-6 shadow-2xl shadow-primary/10 text-white">
+        <div class="text-center space-y-2">
+            <div class="size-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </div>
+            <h2 class="text-xl font-bold tracking-tight">Recover Vault Access</h2>
+            <p class="text-xs text-slate-400">Enter your username and your 12-word recovery phrase to restore access on this device.</p>
+        </div>
+
+        <div class="space-y-4">
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Username</label>
+                <input type="text" id="void-recover-username" class="w-full bg-black border border-slate-800 rounded-xl px-4 py-2 text-sm focus:border-primary outline-none transition-all">
+            </div>
+            
+            <div id="void-mnemonic-container" class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex justify-between">
+                    <span>12-Word Recovery Phrase</span>
+                    <button type="button" onclick="document.getElementById('void-mnemonic-container').classList.add('hidden'); document.getElementById('void-password-container').classList.remove('hidden');" class="text-primary hover:underline lowercase">Use Password Instead</button>
+                </label>
+                <textarea id="void-recover-mnemonic" rows="3" placeholder="word1 word2 word3..." class="w-full bg-black border border-slate-800 rounded-xl px-4 py-2 text-sm focus:border-primary outline-none transition-all resize-none"></textarea>
+            </div>
+
+            <div id="void-password-container" class="space-y-1 hidden">
+                <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex justify-between">
+                    <span>Master Password</span>
+                    <button type="button" onclick="document.getElementById('void-password-container').classList.add('hidden'); document.getElementById('void-mnemonic-container').classList.remove('hidden');" class="text-primary hover:underline lowercase">Use 12-Word Seed Instead</button>
+                </label>
+                <input type="password" id="void-recover-password" class="w-full bg-black border border-slate-800 rounded-xl px-4 py-2 text-sm focus:border-primary outline-none transition-all">
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button id="void-close-recover" class="flex-1 py-3 border border-slate-800 text-slate-400 font-bold rounded-full text-xs hover:bg-white/5 transition-all">
+                Cancel
+            </button>
+            <button id="void-submit-recover" class="flex-[2] py-3 bg-primary text-black font-bold rounded-full text-xs hover:bg-neon-green transition-all uppercase tracking-widest">
+                Restore Vault
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('void-recover-modal');
+    const closeBtn = document.getElementById('void-close-recover');
+    const submitBtn = document.getElementById('void-submit-recover');
+    const triggerBtns = document.querySelectorAll('.void-recover-trigger');
+
+    triggerBtns.forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            modal.classList.remove('hidden');
+        };
+    });
+
+    closeBtn.onclick = () => modal.classList.add('hidden');
+
+    submitBtn.onclick = async () => {
+        const username = document.getElementById('void-recover-username').value;
+        const mnemonicContainer = document.getElementById('void-mnemonic-container');
+        const mnemonic = document.getElementById('void-recover-mnemonic').value.trim();
+        const password = document.getElementById('void-recover-password').value;
+
+        if (!username) {
+            alert('Please enter your username.');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Restoring...';
+
+        try {
+            if (!mnemonicContainer.classList.contains('hidden')) {
+                if (!mnemonic) throw new Error("Please enter your 12-word phrase.");
+                await VoidAuth.recoverWithMnemonic(username, mnemonic);
+            } else {
+                if (!password) throw new Error("Please enter your master password.");
+                await VoidAuth.recoverWithPassword(username, password);
+            }
+            window.location.reload();
+        } catch (err) {
+            alert('Recovery Failed: ' + err.message);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Restore Vault';
+        }
+    };
+});
+</script>

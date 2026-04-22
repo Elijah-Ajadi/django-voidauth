@@ -159,6 +159,34 @@ Add this inside your login form to enable passwordless authentication.
 {% void_secure_login_button redirect_url='/dashboard' %}
 ```
 
+### 4. Recovery Portal (Mnemonic & Password)
+Add this to your login page. It injects a hidden modal that allows users to restore their vault on a new device using either their 12-word seed or their master password.
+```html
+{% void_recovery_form %}
+```
+
+**Triggering Recovery:**
+Simply add the class `void-recover-trigger` to any link or button:
+```html
+<a href="#" class="void-recover-trigger">Lost device? Recover Vault</a>
+```
+
+---
+
+## 🛡️ Recovery Architecture
+
+VoidAuth provides a unique dual-path recovery system that balances high security with user convenience:
+
+1.  **Path A: BIP-39 Mnemonic (Seed Phrase)**
+    -   **Usage**: Primary recovery method if the device is lost.
+    -   **Logic**: The 12-word phrase re-derives the Ed25519 Private Key entirely on the client side.
+    -   **Security**: No server interaction required for derivation.
+
+2.  **Path B: Server-Side Recovery Blob (Master Password)**
+    -   **Usage**: Fallback if the user loses their 12-word seed but remembers their password.
+    -   **Logic**: The server provides an AES-GCM encrypted version of the private key. The client decrypts it locally using the master password.
+    -   **Security**: The server *never* sees the cleartext key or the password.
+
 ---
 
 ## 🤖 Void Architect (AI Setup Assistant)

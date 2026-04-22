@@ -199,7 +199,7 @@ window.VoidAuth = (function() {
         }
     }
 
-    async function recoverWithMnemonic(username, mnemonic, newMasterPassword) {
+    async function recoverWithMnemonic(username, mnemonic) {
         if (typeof window.sodium === 'undefined') {
             throw new Error("Security library (libsodium) not loaded locally. Please refresh the page.");
         }
@@ -214,16 +214,33 @@ window.VoidAuth = (function() {
         const privateKeyHex = buf2hex(keypair.privateKey);
         
         await savePrivateKey(username, privateKeyHex);
-        
-        // In a full implementation, you would also trigger the key rotation/vetting period here
-        // by making an API call to a specific recovery endpoint.
-        // For now, we just restore the local key, allowing login to succeed.
         return login(username);
+    }
+
+    async function recoverWithPassword(username, password) {
+        // Fetch recovery blob from server
+        const response = await apiRequest('/voidauth/get_recovery_blob/', { username });
+        if (response.error) throw new Error(response.error);
+        
+        const blob = JSON.parse(response.recovery_blob);
+        
+        try {
+            const privateKeyBuf = await decryptPrivateKey(blob, password);
+            const privateKeyHex = buf2hex(privateKeyBuf);
+            
+            // Save local
+            await savePrivateKey(username, privateKeyHex);
+            
+            return login(username);
+        } catch (err) {
+            throw new Error("Invalid password or corrupted recovery blob.");
+        }
     }
 
     return {
         register,
         login,
-        recoverWithMnemonic
+        recoverWithMnemonic,
+        recoverWithPassword
     };
 })();

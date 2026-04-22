@@ -12,3 +12,8 @@ def void_recovery_modal():
 def void_secure_login_button(redirect_url='/'):
     """Renders the 'Secure Login (Vault)' button with built-in JS handler."""
     return {'redirect_url': redirect_url}
+
+@register.inclusion_tag('voidauth/snippets/recovery_form.html')
+def void_recovery_form():
+    """Renders the Zero-Knowledge account recovery form."""
+    return {}

@@ -78,3 +78,22 @@ class RegisterView(View):
         )
 
         return JsonResponse({'status': 'success', 'message': 'User registered'})
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RecoveryBlobView(View):
+    def post(self, request, *args, **kwargs):
+        username = request.POST.get('username')
+        if not username:
+            return JsonResponse({'error': 'Username required'}, status=400)
+
+        try:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            user = User.objects.get(username=username)
+            profile = user.voidauth_profile
+            return JsonResponse({
+                'status': 'success', 
+                'recovery_blob': profile.recovery_blob
+            })
+        except (User.DoesNotExist, Exception):
+            return JsonResponse({'error': 'Recovery data not found'}, status=404)
