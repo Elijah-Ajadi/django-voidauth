@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoidAuth — Zero-Knowledge Handshake for Django</title>
+  <meta name="description" content="A high-security, asymmetric authentication system for Django that ensures cleartext passwords and reversible hashes never touch your server.">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <div class="dot-grid"></div>
+  <div class="bloom" style="top: 10%; left: 10%;"></div>
+  <div class="bloom" style="top: 60%; right: 5%;"></div>
+
+  <header class="header-pill glass">
+    <div class="logo">
+      <div class="logo-mark">V</div>
+      <span>void.auth</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#action">Works</a>
+      <a href="#story">Story</a>
+      <a href="#compare">Compare</a>
+      <a href="#faq">FAQ</a>
+      <a href="#changelog">Changelog</a>
+      <a href="https://github.com/ELijah-Ajadi/django-voidauth" target="_blank">GitHub</a>
+    </nav>
+    <a href="docs.html" class="btn btn-accent" style="padding: 0.6rem 1.2rem; border-radius: 999px;">
+      Explore Docs <span style="opacity: 0.5; margin-left: 4px;">⌘K</span>
+    </a>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-content">
+        <div class="badge">
+          <div class="badge-dot"></div>
+          Open Source v0.1.0
+        </div>
+        <h1 class="text-7xl font-extrabold tracking-tighter leading-[0.9] mb-8">
+          Auth sucks. <br>
+          <span class="text-gradient">Well, used to.</span>
+        </h1>
+        <p class="text-lg text-text-secondary leading-relaxed mb-10 max-w-lg">
+          A high-security, asymmetric authentication system for Django that ensures cleartext passwords and reversible hashes <strong>never</strong> touch your server.
+        </p>
+        <div style="display: flex; gap: 1rem;">
+          <a href="docs.html" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1rem;">
+            Get Started
+          </a>
+          <div class="glass" style="padding: 1rem 1.5rem; border-radius: 12px; font-family: var(--font-mono); font-size: 0.9rem; display: flex; align-items: center; gap: 1rem;">
+            <span style="color: var(--accent);">$</span>
+            <span style="opacity: 0.8;">pip install django-voidauth</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="terminal glass">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+          </div>
+          <span class="terminal-title">voidauth/backend.py</span>
+        </div>
+        <div class="terminal-body">
+          <span class="code-keyword">class</span> <span class="code-class">VoidAuthBackend</span>(ModelBackend):<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">def</span> <span class="code-class">authenticate</span>(self, request, username):<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;challenge = generate_challenge()<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;request.session[<span class="code-string">'challenge'</span>] = challenge<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">return</span> { 'challenge': challenge }
+        </div>
+      </div>
+    </section>
+
+    <!-- ACTION SECTION -->
+    <section id="action">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <span style="color: var(--accent); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.3em;">// SEE IT IN ACTION</span>
+        <h2 class="text-5xl font-extrabold tracking-tighter mt-4">One library. Total security.</h2>
+        <p class="text-text-secondary mt-4">Choose the flow that fits your app. Mix them as needed.</p>
+      </div>
+
+      <div class="tabs-container">
+        <div class="tabs-nav">
+          <button class="tab-btn active" data-tab="registration">Registration</button>
+          <button class="tab-btn" data-tab="login">Login</button>
+          <button class="tab-btn" data-tab="recovery">Recovery</button>
+        </div>
+
+        <div class="tab-content active" id="registration">
+          <div style="flex: 1;">
+            <div class="terminal glass">
+              <div class="terminal-header">
+                <div class="terminal-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                <span class="terminal-title">signup_view.js</span>
+              </div>
+              <div class="terminal-body">
+                <span class="code-keyword">const</span> result = <span class="code-keyword">await</span> <span class="code-class">VoidAuth</span>.register(username);<br>
+                <span class="code-keyword">if</span> (result.success) {<br>
+                &nbsp;&nbsp;<span class="code-comment">// Show 12-word mnemonic to user</span><br>
+                &nbsp;&nbsp;showRecoveryModal(result.mnemonic);<br>
+                }
+              </div>
+            </div>
+          </div>
+          <div style="flex: 1;">
+            <h3 class="text-3xl font-bold mb-4">Zero-Knowledge Signup</h3>
+            <p class="text-text-secondary leading-relaxed">During registration, VoidAuth generates an Ed25519 keypair locally. The server only receives the public key, creating a permanent cryptographic anchor for the account.</p>
+          </div>
+        </div>
+
+        <div class="tab-content" id="login">
+          <div style="flex: 1;">
+            <div class="terminal glass">
+              <div class="terminal-header">
+                <div class="terminal-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                <span class="terminal-title">login_view.js</span>
+              </div>
+              <div class="terminal-body">
+                <span class="code-keyword">try</span> {<br>
+                &nbsp;&nbsp;<span class="code-keyword">await</span> <span class="code-class">VoidAuth</span>.login(username);<br>
+                &nbsp;&nbsp;window.location.href = <span class="code-string">'/dashboard'</span>;<br>
+                } <span class="code-keyword">catch</span> (err) {<br>
+                &nbsp;&nbsp;alert(<span class="code-string">"Auth Failed"</span>);<br>
+                }
+              </div>
+            </div>
+          </div>
+          <div style="flex: 1;">
+            <h3 class="text-3xl font-bold mb-4">The Handshake</h3>
+            <p class="text-text-secondary leading-relaxed">Login is a simple challenge-response proof. The server sends a random nonce, the client signs it with their private key, and the server verifies it. No passwords ever cross the wire.</p>
+          </div>
+        </div>
+
+        <div class="tab-content" id="recovery">
+          <div style="flex: 1;">
+            <div class="terminal glass">
+              <div class="terminal-header">
+                <div class="terminal-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+                <span class="terminal-title">recovery_view.js</span>
+              </div>
+              <div class="terminal-body">
+                <span class="code-keyword">await</span> <span class="code-class">VoidAuth</span>.recover(username, mnemonic);<br>
+                <span class="code-comment">// Private key restored to Vault</span>
+              </div>
+            </div>
+          </div>
+          <div style="flex: 1;">
+            <h3 class="text-3xl font-bold mb-4">BIP-39 Restoration</h3>
+            <p class="text-text-secondary leading-relaxed">If a user loses their device, they can restore their vault using their 12-word seed phrase. The private key is re-derived locally, ensuring total autonomy.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div style="text-align: center; margin-bottom: 5rem;">
+        <span style="color: var(--accent); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.3em;">// FEATURES</span>
+        <h2 class="text-5xl font-extrabold tracking-tighter mt-4">Everything you need to secure apps</h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="card glass">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Ed25519 Proofs</h3>
+          <p class="text-text-secondary text-sm leading-relaxed">Ultra-fast, high-security asymmetric signatures for every login. No passwords stored.</p>
+        </div>
+
+        <div class="card glass">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </div>
+          <h3 class="text-xl font-bold mb-3">BIP-39 Recovery</h3>
+          <p class="text-text-secondary text-sm leading-relaxed">Users can recover accounts using human-readable 12-word mnemonics. No more 'Forgot Password' emails.</p>
+        </div>
+
+        <div class="card glass">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3-3.5 3.5z"></path></svg>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Local Vault</h3>
+          <p class="text-text-secondary text-sm leading-relaxed">Private keys are stored in the browser's IndexedDB, protected from XSS and cookie theft.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ORIGIN STORY SECTION -->
+    <section id="story">
+      <div style="max-width: 800px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 5rem;">
+          <span style="color: var(--accent); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.3em;">// THE ORIGIN STORY</span>
+          <h2 class="text-5xl font-extrabold tracking-tighter mt-4">Why VoidAuth exists</h2>
+        </div>
+        
+        <div style="border-left: 2px solid rgba(255,255,255,0.1); padding-left: 2.5rem; display: flex; flex-direction: column; gap: 3rem;">
+          <p class="text-lg text-text-secondary leading-relaxed">
+            In many ecosystems, secure authentication is complex and often relies on centralized providers. Django's built-in auth is solid, but it still stores secrets on your server. For many developers, the friction of implementing asymmetric auth was just high enough that it never got done.
+          </p>
+          
+          <div style="border-left: 4px solid; border-image: linear-gradient(to bottom, #ff6b00, #a855f7) 1; padding-left: 2.5rem;">
+            <h3 class="text-3xl font-bold tracking-tight">
+              Django deserved a zero-knowledge authentication story. <br>
+              <span style="color: #a855f7;">That's the gap.</span>
+            </h3>
+          </div>
+
+          <p class="text-lg text-text-secondary leading-relaxed">
+            So I built VoidAuth. Inspired by blockchain security and the principle of user autonomy: write secure apps where secrets stay with the user, and the server knows only how to verify them.
+          </p>
+          
+          <p class="text-lg text-text-secondary leading-relaxed">
+            No new framework to adopt. No test suite to maintain alongside it. Just your existing Django controllers and a DSL that stays out of your way.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPARISON SECTION -->
+    <section id="compare">
+      <div style="text-align: center; margin-bottom: 5rem;">
+        <span style="color: var(--accent); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.3em;">// HOW IT COMPARES</span>
+        <h2 class="text-5xl font-extrabold tracking-tighter mt-4">You've tried the alternatives.</h2>
+        <p class="text-text-secondary mt-4">Here's why they didn't stick — and what VoidAuth does differently.</p>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="comp-card">
+          <div class="comp-header">
+            <span class="comp-badge">Passwords</span>
+            <span class="comp-title">✘ Vulnerable to leaks</span>
+          </div>
+          <p class="text-sm text-text-secondary">Standard password hashing is still vulnerable to offline brute-force attacks if your database is leaked. Cleartext never exists with VoidAuth.</p>
+          <div class="comp-void">
+            <span class="comp-check">✔</span>
+            <p class="text-sm font-bold">VoidAuth: No secrets on server. Database leaks reveal nothing.</p>
+          </div>
+        </div>
+
+        <div class="comp-card">
+          <div class="comp-header">
+            <span class="comp-badge">OAuth</span>
+            <span class="comp-title">✘ Centralized tracking</span>
+          </div>
+          <p class="text-sm text-text-secondary">Relying on Google or GitHub means you're tied to their uptime and their data tracking. Your users lose autonomy.</p>
+          <div class="comp-void">
+            <span class="comp-check">✔</span>
+            <p class="text-sm font-bold">VoidAuth: Fully decentralized. You own your identity.</p>
+          </div>
+        </div>
+
+        <div class="comp-card">
+          <div class="comp-header">
+            <span class="comp-badge">WebAuthn</span>
+            <span class="comp-title">✘ Hard to implement</span>
+          </div>
+          <p class="text-sm text-text-secondary">Standard WebAuthn is complex to implement and often lacks built-in recovery for lost devices.</p>
+          <div class="comp-void">
+            <span class="comp-check">✔</span>
+            <p class="text-sm font-bold">VoidAuth: One-command setup with BIP-39 recovery included.</p>
+          </div>
+        </div>
+
+        <div class="comp-card">
+          <div class="comp-header">
+            <span class="comp-badge">Standard 2FA</span>
+            <span class="comp-title">✘ Friction for users</span>
+          </div>
+          <p class="text-sm text-text-secondary">TOTP codes and SMS add friction every time. Users hate typing in codes.</p>
+          <div class="comp-void">
+            <span class="comp-check">✔</span>
+            <p class="text-sm font-bold">VoidAuth: Seamless asymmetric handshake. Zero friction.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section id="faq">
+      <div style="text-align: center; margin-bottom: 5rem;">
+        <span style="color: var(--accent); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.3em;">// FAQ</span>
+        <h2 class="text-5xl font-extrabold tracking-tighter mt-4">Common questions</h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <div class="faq-q">What happens if a user loses their device?</div>
+          <div class="faq-a">They can use their 12-word recovery mnemonic to restore their vault. This re-derives their private key locally without ever contacting the server.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Does the server store passwords?</div>
+          <div class="faq-a">No. The server only stores an Ed25519 Public Key. It knows how to verify you, but it doesn't know your secrets.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Is it compatible with Django Rest Framework?</div>
+          <div class="faq-a">Yes. VoidAuth includes a specialized backend that hooks into Django's standard auth system, making it compatible with DRF and standard views.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHANGELOG SECTION -->
+    <section id="changelog">
+      <div style="text-align: center; margin-bottom: 5rem;">
+        <span style="color: var(--accent); font-weight: 800; font-size: 0.7rem; letter-spacing: 0.3em;">// CHANGELOG</span>
+        <h2 class="text-5xl font-extrabold tracking-tighter mt-4">What's new</h2>
+      </div>
+
+      <div class="changelog-card">
+        <div class="version-tag">
+          <span class="v-num">v0.1.0</span>
+          <span class="v-latest">LATEST</span>
+          <span style="color: var(--text-secondary); font-size: 0.8rem; margin-left: auto;">Apr 22, 2026</span>
+        </div>
+        <div class="change-item">
+          <span class="change-type type-added">Added</span>
+          <p class="change-desc">Void Architect AI setup assistant for automatic template patching.</p>
+        </div>
+        <div class="change-item">
+          <span class="change-type type-added">Added</span>
+          <p class="change-desc">BIP-39 mnemonic recovery flow for lost devices.</p>
+        </div>
+        <div class="change-item">
+          <span class="change-type type-fixed">Fixed</span>
+          <p class="change-desc">IndexedDB concurrency issue on rapid page refreshes.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p style="font-size: 0.9rem; color: var(--text-secondary);">
+        Built with passion by <a href="https://github.com/ELijah-Ajadi" target="_blank" style="color: var(--text-primary); font-weight: 600;">Elijah Ajadi</a>
+      </p>
+      <div class="footer-links">
+        <a href="docs.html">Documentation</a>
+        <a href="https://github.com/ELijah-Ajadi/django-voidauth">GitHub</a>
+        <a href="#">License</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/nav.js"></script>
+</body>
+</html>

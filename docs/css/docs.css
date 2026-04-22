@@ -1,0 +1,132 @@
+.docs-page {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  border-right: 1px solid var(--border);
+  padding: 8rem 2rem 2rem;
+  overflow-y: auto;
+}
+
+.sidebar-group {
+  margin-bottom: 2.5rem;
+}
+
+.sidebar-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 1rem;
+}
+
+.sidebar-links li {
+  margin-bottom: 0.5rem;
+}
+
+.sidebar-links a {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  padding: 0.5rem 0;
+}
+
+.sidebar-links a:hover {
+  color: var(--text-primary);
+}
+
+.sidebar-links a.active {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Content */
+.docs-content {
+  padding: 8rem 4rem 8rem 6rem;
+  max-width: 900px;
+}
+
+.docs-content section {
+  padding: 0;
+  margin-bottom: 6rem;
+}
+
+.docs-content h1 {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  margin-bottom: 2rem;
+  line-height: 1;
+}
+
+.docs-content h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 4rem 0 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.docs-content p {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.docs-content pre {
+  margin: 2rem 0;
+  padding: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow-x: auto;
+  position: relative;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+pre:hover .copy-btn {
+  opacity: 1;
+}
+
+.copy-btn:hover {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+@media (max-width: 1024px) {
+  .docs-page {
+    grid-template-columns: 1fr;
+  }
+  
+  .sidebar {
+    display: none; /* Mobile menu needed */
+  }
+  
+  .docs-content {
+    padding: 8rem 2rem;
+  }
+}

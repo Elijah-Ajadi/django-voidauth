@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation — VoidAuth</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/docs.css">
+  <style>
+    /* Table styles for API reference */
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      font-size: 0.9rem;
+    }
+    .api-table th, .api-table td {
+      text-align: left;
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .api-table th {
+      color: var(--accent);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+    }
+    .api-table code {
+      color: var(--text-primary);
+      background: var(--surface);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+    
+    /* Callout styles */
+    .callout {
+      padding: 2rem;
+      border-radius: 16px;
+      margin: 2rem 0;
+      border-left: 4px solid var(--accent);
+      background: rgba(255, 107, 0, 0.05);
+    }
+    .callout h4 {
+      color: var(--accent);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="dot-grid"></div>
+
+  <header class="header-pill glass">
+    <div class="logo">
+      <div class="logo-mark">V</div>
+      <a href="index.html">void.auth</a>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html#features">Features</a>
+      <a href="index.html#how-it-works">Works</a>
+      <a href="https://github.com/ELijah-Ajadi/django-voidauth" target="_blank">GitHub</a>
+    </nav>
+    <div class="glass" style="padding: 0.6rem 1.2rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; color: var(--accent);">
+      v0.1.0
+    </div>
+  </header>
+
+  <div class="docs-page">
+    <aside class="sidebar">
+      <div class="sidebar-group">
+        <h4 class="sidebar-label">Introduction</h4>
+        <ul class="sidebar-links">
+          <li><a href="#philosophy" class="active">Philosophy</a></li>
+          <li><a href="#security-arch">Security Architecture</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <h4 class="sidebar-label">Getting Started</h4>
+        <ul class="sidebar-links">
+          <li><a href="#installation">Installation</a></li>
+          <li><a href="#setup">Project Setup</a></li>
+          <li><a href="#architect">Void Architect (AI)</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <h4 class="sidebar-label">Integration</h4>
+        <ul class="sidebar-links">
+          <li><a href="#client-side">Client-Side Setup</a></li>
+          <li><a href="#js-api">JavaScript API</a></li>
+          <li><a href="#template-tags">Template Tags</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <h4 class="sidebar-label">Advanced</h4>
+        <ul class="sidebar-links">
+          <li><a href="#recovery-arch">Recovery Architecture</a></li>
+          <li><a href="#compatibility">Compatibility</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="docs-content">
+      <section id="philosophy">
+        <h1>Philosophy</h1>
+        <p>Traditional authentication systems rely on storing secrets (hashed passwords) on the server. If the database is compromised, those secrets are exposed to offline brute-force attacks.</p>
+        <p><strong>VoidAuth flips the script.</strong> Inspired by blockchain security and modern cryptography, VoidAuth ensures that the server never handles user secrets. Period.</p>
+        
+        <div class="callout">
+          <h4>Core Principle</h4>
+          <p style="font-style: italic; font-size: 1.25rem; color: var(--text-primary); margin-bottom: 0;">"If the server doesn't know the secret, it can't lose the secret."</p>
+        </div>
+
+        <ul style="color: var(--text-secondary); line-height: 2; margin-top: 2rem;">
+          <li><strong>Server Knowledge:</strong> Zero. Stores only a Public Commitment (Ed25519 Public Key).</li>
+          <li><strong>Client Ownership:</strong> Absolute. The Private Key never leaves the user's device.</li>
+          <li><strong>Verification:</strong> Cryptographic. Achieved via a Challenge-Response proof.</li>
+        </ul>
+      </section>
+
+      <section id="security-arch">
+        <h1>Security Architecture</h1>
+        <p>Authentication in VoidAuth is a four-step cryptographic handshake:</p>
+        <ol style="color: var(--text-secondary); line-height: 2; margin-left: 1.5rem; list-style: decimal;">
+          <li><strong>Handshake:</strong> Client requests a <code>challenge</code> (random nonce) from the server.</li>
+          <li><strong>Signature:</strong> Client signs the <code>challenge</code> using their local <code>Private Key</code>.</li>
+          <li><strong>Proof:</strong> Client sends the <code>signature</code> and <code>challenge</code> back to the server.</li>
+          <li><strong>Verification:</strong> Server uses the stored <code>Public Key</code> to verify the signature.</li>
+        </ol>
+      </section>
+
+      <section id="installation">
+        <h1>Installation</h1>
+        <p>Install the package via pip to enter the void.</p>
+        <pre><code class="language-bash">pip install django-voidauth</code><button class="copy-btn">Copy</button></pre>
+        
+        <h2>Prerequisites</h2>
+        <ul style="color: var(--text-secondary); line-height: 2; margin-left: 1.5rem; list-style: disc;">
+          <li>Django 3.2+</li>
+          <li>Python 3.8+</li>
+          <li>Modern Browser (Web Crypto API support)</li>
+        </ul>
+      </section>
+
+      <section id="setup">
+        <h1>Project Setup</h1>
+        <p>Configure your Django settings to enable the asymmetric handshake.</p>
+        
+        <h3>1. Update <code>INSTALLED_APPS</code></h3>
+        <pre><code>INSTALLED_APPS = [
+    ...
+    'voidauth',
+]</code><button class="copy-btn">Copy</button></pre>
+
+        <h3>2. Configure Auth Backends</h3>
+        <pre><code>AUTHENTICATION_BACKENDS = [
+    'voidauth.backend.VoidAuthBackend',
+    'django.contrib.auth.backends.ModelBackend', # Fallback for admin
+]</code><button class="copy-btn">Copy</button></pre>
+
+        <h3>3. Add Middleware</h3>
+        <pre><code>MIDDLEWARE = [
+    ...
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'voidauth.middleware.VoidAuthMiddleware',
+    ...
+]</code><button class="copy-btn">Copy</button></pre>
+
+        <h3>4. Include URLs</h3>
+        <pre><code>urlpatterns = [
+    ...
+    path('voidauth/', include('voidauth.urls')),
+]</code><button class="copy-btn">Copy</button></pre>
+      </section>
+
+      <section id="architect">
+        <h1>Void Architect</h1>
+        <p>The AI-powered setup assistant that performs a deep scan of your project to automate the integration process.</p>
+        <pre><code>python manage.py void_architect --auto</code><button class="copy-btn">Copy</button></pre>
+        <p>The Architect will analyze your project structure, find your specific auth templates, detect form field names, and apply non-destructive patches using template tags.</p>
+      </section>
+
+      <section id="client-side">
+        <h1>Client-Side Setup</h1>
+        <p>First, include the required cryptographic libraries and the VoidAuth logic in your base template:</p>
+        <pre><code>&lt;!-- Cryptography Libraries --&gt;
+&lt;script src="{% static 'voidauth/js/libsodium.js' %}"&gt;&lt;/script&gt;
+&lt;script src="{% static 'voidauth/js/bip39.js' %}"&gt;&lt;/script&gt;
+&lt;!-- VoidAuth Logic --&gt;
+&lt;script src="{% static 'voidauth/js/voidauth.js' %}"&gt;&lt;/script&gt;</code><button class="copy-btn">Copy</button></pre>
+      </section>
+
+      <section id="js-api">
+        <h1>JavaScript API</h1>
+        <p>The global <code>VoidAuth</code> object provides everything you need to manage the client-side lifecycle.</p>
+        
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>VoidAuth.register(u, e, p)</code></td>
+              <td>Generates keys, creates account, and returns recovery mnemonic.</td>
+            </tr>
+            <tr>
+              <td><code>VoidAuth.login(username)</code></td>
+              <td>Performs the challenge-response handshake.</td>
+            </tr>
+            <tr>
+              <td><code>VoidAuth.recover(u, m, p)</code></td>
+              <td>Restores account access on a new device.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="template-tags">
+        <h1>Template Tags</h1>
+        <p>VoidAuth ships with built-in Django template tags for a "plug-and-play" integration.</p>
+        <pre><code>{% load voidauth_tags %}</code><button class="copy-btn">Copy</button></pre>
+        
+        <h3>Recovery Modal</h3>
+        <p>Ensures users save their 12-word seed phrase before finishing registration.</p>
+        <pre><code>{% void_recovery_modal %}</code><button class="copy-btn">Copy</button></pre>
+
+        <h3>Secure Login Button</h3>
+        <p>Enable passwordless authentication inside your login form.</p>
+        <pre><code>{% void_secure_login_button redirect_url='/dashboard' %}</code><button class="copy-btn">Copy</button></pre>
+      </section>
+
+      <section id="recovery-arch">
+        <h1>Recovery Architecture</h1>
+        <p>VoidAuth provides a unique dual-path recovery system:</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+          <div class="glass" style="padding: 1.5rem; border-radius: 16px;">
+            <h4 style="color: var(--accent); margin-bottom: 1rem;">Path A: Seed Phrase</h4>
+            <p style="font-size: 0.9rem;">12-word phrase re-derives the Private Key entirely on the client side. No server interaction required.</p>
+          </div>
+          <div class="glass" style="padding: 1.5rem; border-radius: 16px;">
+            <h4 style="color: var(--accent); margin-bottom: 1rem;">Path B: Recovery Blob</h4>
+            <p style="font-size: 0.9rem;">Server provides an AES-GCM encrypted version of the key. Client decrypts it locally using a master password.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="compatibility">
+        <h1>Browser Compatibility</h1>
+        <p>VoidAuth leverages the <strong>Web Crypto API</strong> and <strong>IndexedDB</strong>.</p>
+        <ul style="color: var(--text-secondary); line-height: 2; margin-left: 1.5rem; list-style: disc;">
+          <li>Chrome 37+</li>
+          <li>Firefox 34+</li>
+          <li>Edge 12+</li>
+          <li>Safari 10.1+</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/nav.js"></script>
+  <script src="js/docs.js"></script>
+  <script src="js/copy.js"></script>
+</body>
+</html>
