@@ -11,6 +11,10 @@
   --glass-bg: rgba(10, 10, 10, 0.7);
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  
+  /* Brand Gradients */
+  --brand-gradient: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --hero-gradient: linear-gradient(135deg, #ffffff 30%, rgba(255, 255, 255, 0.5) 100%);
 }
 
 * {
@@ -55,11 +59,19 @@ img {
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent) 100%);
+  background: var(--brand-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+.text-7xl { font-size: clamp(3.5rem, 8vw, 5rem); }
+.text-8xl { font-size: clamp(4rem, 10vw, 6.5rem); }
+.font-extrabold { font-weight: 800; }
+.tracking-tighter { letter-spacing: -0.05em; }
+.leading-tight { line-height: 1.1; }
+.mb-8 { margin-bottom: 2rem; }
+.mb-10 { margin-bottom: 2.5rem; }
 
 .glass {
   background: var(--glass-bg);
