@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load voidauth_tags %}
+
+{% block content %}
+<div class="voidauth-container">
+    <h2>Recover your Void Account</h2>
+    <p>Enter your 12-word mnemonic seed to regenerate your private key.</p>
+    <form id="voidauth-recover-form">
+        <input type="text" id="username" placeholder="Username" required>
+        <textarea id="mnemonic" placeholder="12-word mnemonic (space separated)" rows="3" required></textarea>
+        <button type="submit">Recover</button>
+    </form>
+    <div id="recover-message"></div>
+</div>
+
+{% voidauth_scripts %}
+<script>
+    document.getElementById('voidauth-recover-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const mnemonic = document.getElementById('mnemonic').value.trim();
+        const msgDiv = document.getElementById('recover-message');
+        
+        msgDiv.innerText = "Regenerating keys and recovering...";
+        
+        try {
+            // Provide a dummy new master password for the local encryption, as it's not being synced to server in this simple flow.
+            // A full implementation would prompt the user for a new master password to re-encrypt the blob.
+            await window.VoidAuth.recoverWithMnemonic(username, mnemonic, "new-master-password");
+            
+            msgDiv.innerText = "Recovery successful! Logging you in...";
+            msgDiv.style.color = 'green';
+            setTimeout(() => {
+                window.location.href = '/'; // Or wherever you want to redirect
+            }, 1000);
+            
+        } catch (error) {
+            msgDiv.innerText = "Error: " + error.message;
+            msgDiv.style.color = 'red';
+        }
+    });
+</script>
+{% endblock %}

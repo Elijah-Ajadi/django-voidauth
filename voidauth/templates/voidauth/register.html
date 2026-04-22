@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load voidauth_tags %}
+
+{% block content %}
+<div class="voidauth-container">
+    <h2>Register for the Void</h2>
+    <form id="voidauth-register-form">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="master-password" placeholder="Master Password" required>
+        <button type="submit">Register</button>
+    </form>
+    <div id="register-message"></div>
+    <div id="mnemonic-display" style="display:none;">
+        <h3 style="color:red;">CRITICAL: SAVE THESE 12 WORDS</h3>
+        <p>If you lose your device and your master password, you will need these words to recover your account.</p>
+        <pre id="mnemonic-words"></pre>
+    </div>
+</div>
+
+{% voidauth_scripts %}
+<script>
+    document.getElementById('voidauth-register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('master-password').value;
+        
+        const msgDiv = document.getElementById('register-message');
+        msgDiv.innerText = "Generating keys and registering...";
+        
+        try {
+            const result = await window.VoidAuth.register(username, email, password);
+            msgDiv.innerText = result.message;
+            msgDiv.style.color = 'green';
+            
+            document.getElementById('mnemonic-display').style.display = 'block';
+            document.getElementById('mnemonic-words').innerText = result.mnemonic;
+            
+        } catch (error) {
+            msgDiv.innerText = "Error: " + error.message;
+            msgDiv.style.color = 'red';
+        }
+    });
+</script>
+{% endblock %}

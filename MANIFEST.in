@@ -1,0 +1,4 @@
+include LICENSE
+include README.md
+recursive-include voidauth/static *
+recursive-include voidauth/templates *

@@ -1,0 +1,71 @@
+Metadata-Version: 2.4
+Name: django-voidauth
+Version: 0.1.0
+Summary: A zero-knowledge authentication system for Django using Ed25519.
+Home-page: https://github.com/yourusername/django-voidauth
+Author: Your Name
+Author-email: your.email@example.com
+Classifier: Programming Language :: Python :: 3
+Classifier: Framework :: Django
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: Django>=3.2
+Requires-Dist: cryptography>=3.4
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# django-voidauth
+
+A zero-knowledge authentication system for Django.
+
+## Philosophy
+
+"The Zero-Knowledge Void"
+Ensure that Cleartext Passwords and Reversible Hashes never exist on the server. The server stores only a Public Commitment. Authentication is achieved through a Challenge-Response proof.
+
+## Features
+- Ed25519 Asymmetric Proofs
+- BIP-39 Mnemonic Recovery
+- AES-GCM Encrypted Private Key blobs
+- Timed Security Locks
+
+## Installation
+
+```bash
+pip install django-voidauth
+```
+
+Add to `INSTALLED_APPS`:
+```python
+INSTALLED_APPS = [
+    ...
+    'voidauth',
+]
+```
+
+Add to `AUTHENTICATION_BACKENDS`:
+```python
+AUTHENTICATION_BACKENDS = [
+    'voidauth.backend.VoidAuthBackend',
+    'django.contrib.auth.backends.ModelBackend', # Keep for legacy users if using Hybrid Mode
+]
+```
+
+Add to `MIDDLEWARE`:
+```python
+MIDDLEWARE = [
+    ...
+    'voidauth.middleware.VoidAuthMiddleware',
+]
+```

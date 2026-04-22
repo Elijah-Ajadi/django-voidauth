@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load voidauth_tags %}
+
+{% block content %}
+<div class="voidauth-container">
+    <h2>Login to the Void</h2>
+    <form id="voidauth-login-form">
+        <input type="text" id="username" placeholder="Username" required>
+        <button type="submit">Login</button>
+    </form>
+    <div id="login-message"></div>
+</div>
+
+{% voidauth_scripts %}
+<script>
+    document.getElementById('voidauth-login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const msgDiv = document.getElementById('login-message');
+        msgDiv.innerText = "Authenticating...";
+        
+        try {
+            await window.VoidAuth.login(username);
+            msgDiv.innerText = "Success! Redirecting...";
+            window.location.href = '/'; // Or wherever you want to redirect
+        } catch (error) {
+            msgDiv.innerText = "Error: " + error.message;
+            msgDiv.style.color = 'red';
+        }
+    });
+</script>
+{% endblock %}
