@@ -1,17 +1,29 @@
 .docs-page {
   display: grid;
   grid-template-columns: 280px 1fr;
-  min-height: 100vh;
+  gap: 4rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 10rem 2rem 5rem;
 }
 
 /* Sidebar */
 .sidebar {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: 8rem;
+  height: calc(100vh - 10rem);
   border-right: 1px solid var(--border);
-  padding: 8rem 2rem 2rem;
+  padding: 0 2rem 2rem 0;
   overflow-y: auto;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
 }
 
 .sidebar-group {
@@ -36,10 +48,12 @@
   font-size: 0.875rem;
   color: var(--text-secondary);
   padding: 0.5rem 0;
+  transition: all 0.2s ease;
 }
 
 .sidebar-links a:hover {
   color: var(--text-primary);
+  padding-left: 4px;
 }
 
 .sidebar-links a.active {
@@ -49,17 +63,18 @@
 
 /* Content */
 .docs-content {
-  padding: 8rem 4rem 8rem 6rem;
+  padding: 0 4rem 8rem 0;
   max-width: 900px;
 }
 
 .docs-content section {
   padding: 0;
-  margin-bottom: 6rem;
+  margin-bottom: 8rem;
+  scroll-margin-top: 10rem;
 }
 
 .docs-content h1 {
-  font-size: 4rem;
+  font-size: clamp(2.5rem, 8vw, 4rem);
   font-weight: 900;
   letter-spacing: -0.04em;
   margin-bottom: 2rem;
@@ -67,10 +82,17 @@
 }
 
 .docs-content h2 {
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 5vw, 2rem);
   font-weight: 800;
   margin: 4rem 0 1.5rem;
   letter-spacing: -0.02em;
+}
+
+.docs-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 2.5rem 0 1rem;
+  color: var(--text-primary);
 }
 
 .docs-content p {
@@ -120,13 +142,59 @@ pre:hover .copy-btn {
 @media (max-width: 1024px) {
   .docs-page {
     grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 8rem;
   }
   
   .sidebar {
-    display: none; /* Mobile menu needed */
+    position: sticky;
+    top: 5rem;
+    height: auto;
+    width: 100vw;
+    margin-left: calc(-1 * var(--container-padding));
+    background: rgba(3, 3, 3, 0.95);
+    backdrop-filter: blur(20px);
+    z-index: 100;
+    padding: 1rem var(--container-padding);
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+    gap: 2rem;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  
+  .sidebar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .sidebar-group {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  .sidebar-label {
+    display: none;
+  }
+  
+  .sidebar-links {
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .sidebar-links li {
+    margin-bottom: 0;
   }
   
   .docs-content {
-    padding: 8rem 2rem;
+    padding: 4rem 0;
+    max-width: 100%;
+  }
+  
+  .docs-content section {
+    margin-bottom: 6rem;
+    scroll-margin-top: 12rem;
   }
 }

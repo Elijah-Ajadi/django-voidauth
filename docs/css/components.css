@@ -10,6 +10,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
+  white-space: nowrap;
 }
 
 .btn-primary {
@@ -41,6 +42,12 @@
   color: var(--bg);
 }
 
+.header-btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
 /* Badge */
 .badge {
   display: inline-flex;
@@ -66,10 +73,53 @@
   box-shadow: 0 0 12px #ff6b00;
 }
 
+/* Hero Actions */
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .hero-actions {
+    justify-content: center;
+    gap: 1rem;
+  }
+}
+
+.install-pill {
+  padding: 0.8rem 1.2rem;
+  border-radius: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.install-pill .prefix {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.install-pill .cmd {
+  opacity: 0.8;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 480px) {
+  .install-pill {
+    font-size: 0.75rem;
+    padding: 0.6rem 1rem;
+  }
+}
+
 /* Feature Cards */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
 }
 
@@ -77,6 +127,12 @@
   padding: 2.5rem;
   border-radius: 24px;
   transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1.5rem;
+  }
 }
 
 .card:hover {
@@ -102,6 +158,7 @@
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  width: 100%;
 }
 
 .terminal-header {
@@ -140,12 +197,20 @@
   font-family: var(--font-mono);
   font-size: 0.9rem;
   line-height: 1.6;
+  overflow-x: auto;
 }
 
 .code-keyword { color: var(--accent); }
 .code-class { color: #5fb4f4; }
 .code-string { color: #99c794; }
 .code-comment { color: var(--text-secondary); font-style: italic; }
+
+@media (max-width: 768px) {
+  .terminal-body {
+    padding: 1.5rem;
+    font-size: 0.8rem;
+  }
+}
 
 /* Tabs */
 .tabs-container {
@@ -163,6 +228,13 @@
   border-radius: 999px;
   border: 1px solid var(--border);
   margin-bottom: 3rem;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .tab-btn {
@@ -175,6 +247,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .tab-btn.active {
@@ -194,6 +267,19 @@
   align-items: center;
 }
 
+@media (max-width: 1024px) {
+  .tab-content.active {
+    flex-direction: column-reverse;
+    gap: 3rem;
+    text-align: center;
+  }
+  
+  .tabs-nav {
+    border-radius: 20px;
+    padding: 0.5rem;
+  }
+}
+
 /* Comparison Cards */
 .comparison-grid {
   display: grid;
@@ -201,11 +287,24 @@
   gap: 2rem;
 }
 
+@media (max-width: 768px) {
+  .comparison-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
 .comp-card {
   background: rgba(255, 255, 255, 0.01);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 2rem;
+}
+
+@media (max-width: 480px) {
+  .comp-card {
+    padding: 1.5rem;
+  }
 }
 
 .comp-header {
@@ -257,6 +356,14 @@
   border-bottom: 1px solid var(--border);
 }
 
+@media (max-width: 768px) {
+  .faq-item {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1.5rem 0;
+  }
+}
+
 .faq-q {
   font-size: 0.9rem;
   font-weight: 700;
@@ -277,6 +384,12 @@
   border: 1px solid var(--border);
   border-radius: 24px;
   padding: 3rem;
+}
+
+@media (max-width: 768px) {
+  .changelog-card {
+    padding: 2rem 1.5rem;
+  }
 }
 
 .version-tag {
@@ -321,4 +434,14 @@
 .change-desc {
   font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+/* Docs Specific */
+.version-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--accent);
+  border: 1px solid var(--accent);
 }

@@ -17,7 +17,7 @@
   <header class="header-pill glass">
     <div class="logo">
       <div class="logo-mark">V</div>
-      <span>void.auth</span>
+      <a href="index.html">void.auth</a>
     </div>
     <nav class="nav-links">
       <a href="#features">Features</a>
@@ -27,10 +27,15 @@
       <a href="#faq">FAQ</a>
       <a href="#changelog">Changelog</a>
       <a href="https://github.com/ELijah-Ajadi/django-voidauth" target="_blank">GitHub</a>
+      <a href="docs.html" class="btn btn-accent header-btn">
+        Explore Docs
+      </a>
     </nav>
-    <a href="docs.html" class="btn btn-accent" style="padding: 0.6rem 1.2rem; border-radius: 999px;">
-      Explore Docs <span style="opacity: 0.5; margin-left: 4px;">⌘K</span>
-    </a>
+    <div class="menu-toggle" id="menu-toggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
   </header>
 
   <main class="container">
@@ -47,14 +52,14 @@
         <p class="text-lg text-text-secondary leading-relaxed mb-10 max-w-lg">
           A high-security, asymmetric authentication system for Django that ensures cleartext passwords and reversible hashes <strong>never</strong> touch your server.
         </p>
-        <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+        <div class="hero-actions">
           <a href="docs.html" class="btn btn-primary">
             Get Started
           </a>
-          <div class="glass" style="padding: 1rem 1.5rem; border-radius: 14px; font-family: var(--font-mono); font-size: 0.9rem; display: flex; align-items: center; gap: 1rem; border: 1px solid rgba(255,255,255,0.1);">
-            <span style="color: #ff6b00; font-weight: 700;">$</span>
-            <span style="opacity: 0.8; letter-spacing: -0.02em;">pip install django-voidauth</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 1rem; opacity: 0.4;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <div class="install-pill glass">
+            <span class="prefix">$</span>
+            <span class="cmd">pip install django-voidauth</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.4;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           </div>
         </div>
       </div>

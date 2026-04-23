@@ -15,6 +15,24 @@
   /* Brand Gradients */
   --brand-gradient: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   --hero-gradient: linear-gradient(135deg, #ffffff 30%, rgba(255, 255, 255, 0.5) 100%);
+
+  /* Responsive Spacing & Layout */
+  --container-padding: 2rem;
+  --section-padding: 8rem;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --container-padding: 1.5rem;
+    --section-padding: 5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --container-padding: 1rem;
+    --section-padding: 4rem;
+  }
 }
 
 * {
@@ -55,7 +73,7 @@ img {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 var(--container-padding);
 }
 
 .text-gradient {
@@ -65,13 +83,25 @@ img {
   background-clip: text;
 }
 
-.text-7xl { font-size: clamp(3.5rem, 8vw, 5rem); }
-.text-8xl { font-size: clamp(4rem, 10vw, 6.5rem); }
+.text-lg { font-size: clamp(1rem, 2.5vw, 1.125rem); }
+.text-xl { font-size: clamp(1.125rem, 3vw, 1.25rem); }
+.text-3xl { font-size: clamp(1.5rem, 5vw, 2rem); }
+.text-5xl { font-size: clamp(2rem, 8vw, 3rem); }
+.text-7xl { font-size: clamp(2.5rem, 10vw, 5rem); }
+.text-8xl { font-size: clamp(2.75rem, 12vw, 6.5rem); }
+
+.font-bold { font-weight: 700; }
 .font-extrabold { font-weight: 800; }
 .tracking-tighter { letter-spacing: -0.05em; }
 .leading-tight { line-height: 1.1; }
-.mb-8 { margin-bottom: 2rem; }
-.mb-10 { margin-bottom: 2.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-8 { margin-bottom: 1.5rem; }
+.mb-10 { margin-bottom: 2rem; }
+
+section {
+  padding: var(--section-padding) 0;
+  position: relative;
+}
 
 .glass {
   background: var(--glass-bg);
@@ -94,8 +124,8 @@ img {
 
 .bloom {
   position: absolute;
-  width: 500px;
-  height: 500px;
+  width: min(500px, 100vw);
+  height: min(500px, 100vw);
   background: var(--accent);
   filter: blur(150px);
   opacity: 0.05;

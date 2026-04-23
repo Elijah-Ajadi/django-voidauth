@@ -10,11 +10,18 @@
   <link rel="stylesheet" href="css/docs.css">
   <style>
     /* Table styles for API reference */
+    .api-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      margin: 2rem 0;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
     .api-table {
       width: 100%;
       border-collapse: collapse;
-      margin: 2rem 0;
       font-size: 0.9rem;
+      min-width: 600px;
     }
     .api-table th, .api-table td {
       text-align: left;
@@ -26,6 +33,7 @@
       text-transform: uppercase;
       font-size: 0.75rem;
       letter-spacing: 0.1em;
+      background: rgba(255, 255, 255, 0.02);
     }
     .api-table code {
       color: var(--text-primary);
@@ -49,6 +57,18 @@
       margin-bottom: 0.5rem;
       letter-spacing: 0.1em;
     }
+
+    @media (max-width: 768px) {
+      .callout {
+        padding: 1.5rem;
+      }
+      .callout h4 {
+        font-size: 0.65rem;
+      }
+      .callout p {
+        font-size: 1rem !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -61,11 +81,14 @@
     </div>
     <nav class="nav-links">
       <a href="index.html#features">Features</a>
-      <a href="index.html#how-it-works">Works</a>
+      <a href="index.html#action">Works</a>
       <a href="https://github.com/ELijah-Ajadi/django-voidauth" target="_blank">GitHub</a>
+      <div class="version-badge glass">v0.1.0</div>
     </nav>
-    <div class="glass" style="padding: 0.6rem 1.2rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; color: var(--accent);">
-      v0.1.0
+    <div class="menu-toggle" id="menu-toggle">
+      <span></span>
+      <span></span>
+      <span></span>
     </div>
   </header>
 
@@ -200,28 +223,30 @@
         <h1>JavaScript API</h1>
         <p>The global <code>VoidAuth</code> object provides everything you need to manage the client-side lifecycle.</p>
         
-        <table class="api-table">
-          <thead>
-            <tr>
-              <th>Method</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><code>VoidAuth.register(u, e, p)</code></td>
-              <td>Generates keys, creates account, and returns recovery mnemonic.</td>
-            </tr>
-            <tr>
-              <td><code>VoidAuth.login(username)</code></td>
-              <td>Performs the challenge-response handshake.</td>
-            </tr>
-            <tr>
-              <td><code>VoidAuth.recover(u, m, p)</code></td>
-              <td>Restores account access on a new device.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="api-table-wrapper">
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>VoidAuth.register(u, e, p)</code></td>
+                <td>Generates keys, creates account, and returns recovery mnemonic.</td>
+              </tr>
+              <tr>
+                <td><code>VoidAuth.login(username)</code></td>
+                <td>Performs the challenge-response handshake.</td>
+              </tr>
+              <tr>
+                <td><code>VoidAuth.recover(u, m, p)</code></td>
+                <td>Restores account access on a new device.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section id="template-tags">
@@ -242,7 +267,7 @@
         <h1>Recovery Architecture</h1>
         <p>VoidAuth provides a unique dual-path recovery system:</p>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 2rem;">
           <div class="glass" style="padding: 1.5rem; border-radius: 16px;">
             <h4 style="color: var(--accent); margin-bottom: 1rem;">Path A: Seed Phrase</h4>
             <p style="font-size: 0.9rem;">12-word phrase re-derives the Private Key entirely on the client side. No server interaction required.</p>
