@@ -53,7 +53,7 @@
         </div>
 
         <div id="qr-login-container" style="display:none; text-align: center;">
-            <div id="qr-reader" style="width: 100%; max-width: 400px; margin: 0 auto; border: none !important;"></div>
+            <div id="qr-reader" style="width: 100%; max-width: 400px; margin: 0 auto; border: 1px dashed var(--void-dim) !important; min-height: 250px; border-radius: 12px; overflow: hidden;"></div>
             <p id="qr-status" style="margin-top: 1.5rem; color: var(--void-dim);">Point your camera at the Phone's Handover QR</p>
             <div class="loader" id="handover-loader" style="display:none; margin: 1rem auto;"></div>
         </div>
@@ -95,13 +95,30 @@
     };
 
     function startScanner() {
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            document.getElementById('qr-status').innerHTML = "<span style='color:red;'>SECURITY ERROR:</span> Camera requires HTTPS connection.";
+            return;
+        }
+
         if (html5QrcodeScanner) return;
-        html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { 
-            fps: 10, 
-            qrbox: 250,
-            aspectRatio: 1.0
-        });
-        html5QrcodeScanner.render(onScanSuccess);
+        
+        try {
+            html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { 
+                fps: 10, 
+                qrbox: 250,
+                aspectRatio: 1.0,
+                showTorchButtonIfSupported: true
+            });
+            html5QrcodeScanner.render(onScanSuccess, (errorMessage) => {
+                // Optimization: Don't flood console with "No QR code found" errors
+                if (!errorMessage.includes("No MultiFormat Readers were able to decode")) {
+                    console.warn(`QR Scan Error: ${errorMessage}`);
+                }
+            });
+        } catch (err) {
+            console.error("Scanner Init Error:", err);
+            document.getElementById('qr-status').innerText = "Camera initialization failed. Check permissions.";
+        }
     }
 
     function stopScanner() {
