@@ -49,7 +49,7 @@ class LoginView(View):
         user = authenticate(request, username=username, challenge=challenge, signature=signature)
 
         if user:
-            login(request, user)
+            login(request, user, backend='voidauth.backend.VoidAuthBackend')
             return JsonResponse({'status': 'success', 'message': 'Logged in'})
         else:
             return JsonResponse({'status': 'error', 'message': 'Invalid signature or challenge'}, status=401)
