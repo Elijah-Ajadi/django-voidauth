@@ -54,6 +54,7 @@ class LoginView(View):
         else:
             return JsonResponse({'status': 'error', 'message': 'Invalid signature or challenge'}, status=401)
 
+@method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'voidauth/signup.html')
