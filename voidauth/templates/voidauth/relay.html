@@ -10,10 +10,13 @@
             You are authorizing a new terminal. This will sign the terminal's challenge with your local private key.
         </p>
 
-        <div id="relay-form-container">
-            <input type="text" id="session-id" placeholder="Terminal Session ID" required>
-            <input type="text" id="challenge" placeholder="Security Challenge" required>
-            <button id="authorize-btn" class="btn-void" style="width: 100%; margin-top: 1rem;">Authorize Terminal</button>
+        <div id="relay-controls" style="text-align: center;">
+            <div id="qr-target" style="background: white; padding: 1.5rem; display: inline-block; border-radius: 1.5rem; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <!-- Handover QR -->
+            </div>
+            <p id="handover-status" style="color: var(--void-dim); margin-bottom: 2rem;">Show this QR code to the new terminal's camera.</p>
+            
+            <button class="void-btn secondary" onclick="generateHandover()">Refresh Access Pass</button>
         </div>
 
         <div id="relay-status" style="margin-top: 2rem; display: none; text-align: center;">
@@ -28,48 +31,80 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-    document.getElementById('authorize-btn').onclick = async () => {
-        const sid = document.getElementById('session-id').value;
-        const ch = document.getElementById('challenge').value;
-        const username = "{{ request.user.username }}";
+    const username = "{{ request.user.username }}";
 
-        if (!sid || !ch) {
-            alert("Session ID and Challenge are required.");
-            return;
-        }
-
-        const btn = document.getElementById('authorize-btn');
-        btn.disabled = true;
-        btn.textContent = "SIGNING PROOF...";
+    async function generateHandover() {
+        const qrTarget = document.getElementById("qr-target");
+        const status = document.getElementById("handover-status");
+        
+        qrTarget.innerHTML = "<p style='color:black;'>Generating...</p>";
+        status.innerText = "Generating secure proof...";
 
         try {
-            await sodium.ready;
-            const privateKeyHex = await VoidAuth.getPrivateKey(username); 
-            // Note: I need to ensure VoidAuth.getPrivateKey is exposed or accessible.
-            // In the formal voidauth.js it's private, but for this relay I need to sign locally.
-            
-            // Looking at voidauth.js, I don't exported getPrivateKey. 
-            // I'll add a helper to VoidAuth to perform a "Relay Signing".
-            
-            const result = await VoidAuth.signRelay(username, sid, ch);
-            
-            if (result.status === 'success') {
-                document.getElementById('relay-form-container').style.display = 'none';
-                document.getElementById('relay-status').style.display = 'block';
-                document.getElementById('relay-status').innerHTML = '<div style="color: #00ff00;">TERMINAL AUTHORIZED!</div>';
-                setTimeout(() => { window.location.href = "{% url 'voidauth:dashboard' %}"; }, 2000);
-            } else {
-                alert("Authorization failed: " + result.message);
-                btn.disabled = false;
-                btn.textContent = "Authorize Terminal";
+            if (!window.sodium) {
+                throw new Error("Sodium library not loaded.");
             }
+            await window.sodium.ready;
+            const sodium = window.sodium;
+            
+            // 1. Get Challenge from Server
+            const challengeResponse = await fetch("{% url 'voidauth:qr_challenge' %}", { method: 'POST' });
+            const challengeData = await challengeResponse.json();
+            const challenge = challengeData.challenge;
+
+            // 2. Sign locally
+            const privateKeyHex = await getPrivateKey(username);
+            if (!privateKeyHex) throw new Error("Private key not found on this device.");
+
+            const privateKeyBuf = new Uint8Array(privateKeyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+            const challengeBuf = new TextEncoder().encode(challenge);
+            const signatureBuf = sodium.crypto_sign_detached(challengeBuf, privateKeyBuf);
+            const signatureHex = Array.prototype.map.call(new Uint8Array(signatureBuf), x => ('00' + x.toString(16)).slice(-2)).join('');
+
+            // 3. Create Proof Object
+            const proof = {
+                u: username,
+                c: challenge,
+                s: signatureHex
+            };
+
+            // 4. Generate QR
+            qrTarget.innerHTML = "";
+            new QRCode(qrTarget, {
+                text: JSON.stringify(proof),
+                width: 256,
+                height: 256,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.L
+            });
+
+            status.innerHTML = "Access Pass Active<br><span style='font-size:0.8rem; opacity:0.6;'>Expires in 60 seconds</span>";
+
         } catch (error) {
-            alert("Relay Error: " + error.message);
-            btn.disabled = false;
-            btn.textContent = "Authorize Terminal";
+            console.error(error);
+            status.innerText = "Error: " + error.message;
+            qrTarget.innerHTML = "❌";
         }
-    };
+    }
+
+    // Helper for DB
+    async function getPrivateKey(username) {
+        const dbPromise = new Promise((resolve) => {
+            const request = indexedDB.open('VoidAuthDB', 1);
+            request.onsuccess = () => resolve(request.result);
+        });
+        const db = await dbPromise;
+        return new Promise((resolve) => {
+            const tx = db.transaction('keys', 'readonly');
+            const req = tx.objectStore('keys').get(username);
+            req.onsuccess = () => resolve(req.result);
+        });
+    }
+
+    window.onload = generateHandover;
 
     // Extension for voidauth.js to handle relay signing
     // I will inject this into the page or update voidauth.js

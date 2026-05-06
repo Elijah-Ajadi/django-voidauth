@@ -137,6 +137,7 @@
     </div>
     <div style="display: flex; align-items: center; gap: 1.5rem;">
         <span class="status-badge status-ok" id="proximity-status">Presence: Locked</span>
+        <a href="{% url 'voidauth:relay' %}" class="btn-void" style="text-decoration: none; font-size: 0.7rem; padding: 8px 16px; background: var(--void-accent-low);">Grant Terminal Access</a>
         <a href="{% url 'voidauth:logout' %}" class="btn-void" style="text-decoration: none; font-size: 0.7rem; padding: 8px 16px;">Logout</a>
     </div>
 </div>

@@ -41,21 +41,21 @@
         <h1 style="text-align: center; margin-bottom: 1.5rem;">ENTER THE VOID</h1>
 
         <div class="login-tabs">
-            <div class="tab active" onclick="switchTab('pulse')">VAULT LOGIN</div>
-            <div class="tab" onclick="switchTab('void')">VOID HANDSHAKE (QR)</div>
+            <div id="tab-vault" class="tab active">VAULT LOGIN</div>
+            <div id="tab-qr" class="tab">VOID HANDSHAKE (QR)</div>
         </div>
         
-        <div id="pulse-section">
+        <div id="login-form-container">
             <form id="login-form">
                 <input type="text" id="username" placeholder="Username" required>
                 <button type="submit" class="btn-void" style="width: 100%;">Authorize Session</button>
             </form>
         </div>
 
-        <div id="qr-section">
-            <p style="font-size: 0.85rem; color: var(--void-dim);">Scan this with your authorized trusted device.</p>
-            <div id="qr-code-canvas"></div>
-            <p id="qr-status" style="font-family: monospace; font-size: 0.7rem; color: var(--void-accent);">WAITING FOR RELAY...</p>
+        <div id="qr-login-container" style="display:none; text-align: center;">
+            <div id="qr-reader" style="width: 100%; max-width: 400px; margin: 0 auto; border: none !important;"></div>
+            <p id="qr-status" style="margin-top: 1.5rem; color: var(--void-dim);">Point your camera at the Phone's Handover QR</p>
+            <div class="loader" id="handover-loader" style="display:none; margin: 1rem auto;"></div>
         </div>
 
         <div style="margin-top: 2rem; text-align: center; font-size: 0.9rem;">
@@ -70,17 +70,82 @@
 
 {% block extra_js %}
 <script>
-    function switchTab(tab) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        if (tab === 'pulse') {
-            document.querySelector('.tab:nth-child(1)').classList.add('active');
-            document.getElementById('pulse-section').style.display = 'block';
-            document.getElementById('qr-section').style.display = 'none';
-        } else {
-            document.querySelector('.tab:nth-child(2)').classList.add('active');
-            document.getElementById('pulse-section').style.display = 'none';
-            document.getElementById('qr-section').style.display = 'block';
-            startQRHandshake();
+    // QR Handshake Logic
+    const qrContainer = document.getElementById('qr-login-container');
+    const loginContainer = document.getElementById('login-form-container');
+    const qrTab = document.getElementById('tab-qr');
+    const vaultTab = document.getElementById('tab-vault');
+
+    let html5QrcodeScanner = null;
+
+    qrTab.onclick = () => {
+        qrTab.classList.add('active');
+        vaultTab.classList.remove('active');
+        loginContainer.style.display = 'none';
+        qrContainer.style.display = 'block';
+        startScanner();
+    };
+
+    vaultTab.onclick = () => {
+        vaultTab.classList.add('active');
+        qrTab.classList.remove('active');
+        loginContainer.style.display = 'block';
+        qrContainer.style.display = 'none';
+        stopScanner();
+    };
+
+    function startScanner() {
+        if (html5QrcodeScanner) return;
+        html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { 
+            fps: 10, 
+            qrbox: 250,
+            aspectRatio: 1.0
+        });
+        html5QrcodeScanner.render(onScanSuccess);
+    }
+
+    function stopScanner() {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear().catch(err => console.error(err));
+            html5QrcodeScanner = null;
+        }
+    }
+
+    async function onScanSuccess(decodedText, decodedResult) {
+        console.log(`Code scanned = ${decodedText}`, decodedResult);
+        stopScanner();
+        
+        document.getElementById('qr-status').innerText = "Proof Scanned. Verifying...";
+        document.getElementById('handover-loader').style.display = 'block';
+        
+        try {
+            // The QR contains a JSON blob: {u, c, s}
+            const proof = JSON.parse(decodedText);
+            
+            const formData = new FormData();
+            formData.append('username', proof.u);
+            formData.append('challenge', proof.c);
+            formData.append('signature', proof.s);
+            
+            const response = await fetch('{% url "voidauth:qr_handover" %}', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            if (result.status === 'success') {
+                window.location.href = '{% url "voidauth:dashboard" %}';
+            } else {
+                alert("Handover failed: " + result.message);
+                startScanner();
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Invalid QR Code structure.");
+            startScanner();
+        } finally {
+            document.getElementById('handover-loader').style.display = 'none';
+            document.getElementById('qr-status').innerText = "Point your camera at the Phone's Handover QR";
         }
     }
 
@@ -107,63 +172,5 @@
             btn.textContent = "Authorize Session";
         }
     };
-
-    // QR Handshake Logic
-    let pollInterval = null;
-
-    async function startQRHandshake() {
-        const qrContainer = document.getElementById('qr-code-canvas');
-        qrContainer.innerHTML = '';
-        
-        try {
-            const response = await fetch("{% url 'voidauth:qr_challenge' %}", { method: 'POST' });
-            const data = await response.json();
-            
-            if (data.status === 'success') {
-                // QR contains session_id and challenge
-                const qrData = JSON.stringify({
-                    sid: data.session_id,
-                    ch: data.challenge,
-                    act: 'relay'
-                });
-                
-                new QRCode(qrContainer, {
-                    text: qrData,
-                    width: 200,
-                    height: 200,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.H
-                });
-
-                startPolling(data.session_id);
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    }
-
-    function startPolling(sessionId) {
-        if (pollInterval) clearInterval(pollInterval);
-        
-        pollInterval = setInterval(async () => {
-            try {
-                const response = await fetch(`{% url 'voidauth:session_status' %}?session_id=${sessionId}`);
-                const data = await response.json();
-                
-                if (data.status === 'authorized') {
-                    clearInterval(pollInterval);
-                    document.getElementById('qr-status').textContent = "AUTHORIZED! REDIRECTING...";
-                    window.location.href = "{% url 'voidauth:dashboard' %}";
-                } else if (data.status === 'expired' || data.status === 'voided') {
-                    clearInterval(pollInterval);
-                    document.getElementById('qr-status').textContent = "SESSION EXPIRED. RESTARTING...";
-                    setTimeout(startQRHandshake, 2000);
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        }, 2000);
-    }
 </script>
 {% endblock %}

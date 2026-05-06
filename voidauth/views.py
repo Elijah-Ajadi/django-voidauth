@@ -108,57 +108,35 @@ class RecoveryBlobView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class QRChallengeView(View):
+    """Used by the Phone to get a challenge to sign."""
     def post(self, request, *args, **kwargs):
-        session_id = secrets.token_hex(16)
         challenge = secrets.token_hex(32)
-        expires_at = timezone.now() + timedelta(minutes=5)
-        
-        WorkstationSession.objects.create(
-            session_id=session_id,
-            challenge=challenge,
-            expires_at=expires_at
-        )
-        
-        return JsonResponse({
-            'status': 'success',
-            'session_id': session_id,
-            'challenge': challenge
-        })
+        # We don't need a session ID here yet, strictly a challenge
+        return JsonResponse({'challenge': challenge})
+
+@method_decorator(csrf_exempt, name='dispatch')
+class QRHandoverView(View):
+    """Used by the Workstation to submit the scanned proof from the Phone."""
+    def post(self, request, *args, **kwargs):
+        username = request.POST.get('username')
+        challenge = request.POST.get('challenge')
+        signature = request.POST.get('signature')
+
+        if not all([username, challenge, signature]):
+            return JsonResponse({'error': 'Missing proof data'}, status=400)
+
+        user = authenticate(request, username=username, challenge=challenge, signature=signature)
+        if user:
+            login(request, user, backend='voidauth.backend.VoidAuthBackend')
+            return JsonResponse({'status': 'success', 'message': 'Handover successful'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Invalid signature or challenge'}, status=401)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class QRRelayView(View):
+    """Legacy endpoint, no longer used in the new flow."""
     def post(self, request, *args, **kwargs):
-        session_id = request.POST.get('session_id')
-        username = request.POST.get('username')
-        signature = request.POST.get('signature')
-        challenge = request.POST.get('challenge')
-
-        if not all([session_id, username, signature, challenge]):
-            return JsonResponse({'error': 'Missing relay data'}, status=400)
-
-        try:
-            ws_session = WorkstationSession.objects.get(session_id=session_id, status='pending')
-            if ws_session.is_expired():
-                ws_session.status = 'expired'
-                ws_session.save()
-                return JsonResponse({'error': 'Session expired'}, status=410)
-            
-            if ws_session.challenge != challenge:
-                return JsonResponse({'error': 'Challenge mismatch'}, status=400)
-
-            # Authenticate using the relay proof
-            user = authenticate(request, username=username, signature=signature, challenge=challenge)
-            
-            if user:
-                ws_session.user = user
-                ws_session.status = 'authorized'
-                ws_session.save()
-                return JsonResponse({'status': 'success', 'message': 'Workstation authorized'})
-            else:
-                return JsonResponse({'status': 'error', 'message': 'Invalid proof'}, status=401)
-                
-        except WorkstationSession.DoesNotExist:
-            return JsonResponse({'error': 'Invalid session'}, status=404)
+        return JsonResponse({'error': 'Please use the /voidauth/qr_handover/ endpoint'}, status=400)
 
 class SessionStatusView(View):
     def get(self, request, *args, **kwargs):
