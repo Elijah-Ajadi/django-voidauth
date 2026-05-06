@@ -53,14 +53,12 @@
           A high-security, asymmetric authentication system for Django that ensures cleartext passwords and reversible hashes <strong>never</strong> touch your server.
         </p>
         <div class="hero-actions">
-          <a href="docs.html" class="btn btn-primary">
-            Get Started
+          <a href="https://django-voidauth.onrender.com/" target="_blank" class="btn btn-primary">
+            Try Live Demo
           </a>
-          <div class="install-pill glass">
-            <span class="prefix">$</span>
-            <span class="cmd">pip install django-voidauth</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.4;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-          </div>
+          <a href="docs.html" class="btn btn-secondary">
+            Documentation
+          </a>
         </div>
       </div>
 
@@ -96,6 +94,7 @@
           <button class="tab-btn active" data-tab="registration">Registration</button>
           <button class="tab-btn" data-tab="login">Login</button>
           <button class="tab-btn" data-tab="recovery">Recovery</button>
+          <button class="tab-btn" data-tab="fusion">Identity Fusion</button>
         </div>
 
         <div class="tab-content active" id="registration">
@@ -143,22 +142,29 @@
           </div>
         </div>
 
-        <div class="tab-content" id="recovery">
+          <div style="flex: 1;">
+            <h3 class="text-3xl font-bold mb-4">BIP-39 Restoration</h3>
+            <p class="text-text-secondary leading-relaxed">If a user loses their device, they can restore their vault using their 12-word seed phrase. The private key is re-derived locally, ensuring total autonomy.</p>
+          </div>
+        </div>
+
+        <div class="tab-content" id="fusion">
           <div style="flex: 1;">
             <div class="terminal glass">
               <div class="terminal-header">
                 <div class="terminal-dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
-                <span class="terminal-title">recovery_view.js</span>
+                <span class="terminal-title">handover_relay.js</span>
               </div>
               <div class="terminal-body">
-                <span class="code-keyword">await</span> <span class="code-class">VoidAuth</span>.recover(username, mnemonic);<br>
-                <span class="code-comment">// Private key restored to Vault</span>
+                <span class="code-comment">// Authorized device generates QR proof</span><br>
+                <span class="code-keyword">const</span> proof = <span class="code-keyword">await</span> <span class="code-class">VoidAuth</span>.signHandover(challenge);<br>
+                showQRCode(proof);
               </div>
             </div>
           </div>
           <div style="flex: 1;">
-            <h3 class="text-3xl font-bold mb-4">BIP-39 Restoration</h3>
-            <p class="text-text-secondary leading-relaxed">If a user loses their device, they can restore their vault using their 12-word seed phrase. The private key is re-derived locally, ensuring total autonomy.</p>
+            <h3 class="text-3xl font-bold mb-4">Identity-Presence Fusion</h3>
+            <p class="text-text-secondary leading-relaxed">Bridge your session to new devices without typing a single word. Scan a secure QR from a trusted device to handover your identity instantly and securely.</p>
           </div>
         </div>
       </div>
@@ -193,6 +199,22 @@
           </div>
           <h3 class="text-xl font-bold mb-3">Local Vault</h3>
           <p class="text-text-secondary text-sm leading-relaxed">Private keys are stored in the browser's IndexedDB, protected from XSS and cookie theft.</p>
+        </div>
+
+        <div class="card glass">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Presence Lock</h3>
+          <p class="text-text-secondary text-sm leading-relaxed">BLE-based physical proximity monitoring. Auto-locks your session when you walk away.</p>
+        </div>
+
+        <div class="card glass">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20m0-20l-4 4m4-4l4 4M12 22l-4-4m4 4l4-4"></path></svg>
+          </div>
+          <h3 class="text-xl font-bold mb-3">Void Dashboard</h3>
+          <p class="text-text-secondary text-sm leading-relaxed">Premium mission control with live proximity radar and cryptographic audit logs.</p>
         </div>
       </div>
     </section>
@@ -325,15 +347,15 @@
         </div>
         <div class="change-item">
           <span class="change-type type-added">Added</span>
-          <p class="change-desc">Void Architect AI setup assistant for automatic template patching.</p>
+          <p class="change-desc">Presence Lock: BLE proximity monitoring with "Shadow State" auto-locking.</p>
         </div>
         <div class="change-item">
           <span class="change-type type-added">Added</span>
-          <p class="change-desc">BIP-39 mnemonic recovery flow for lost devices.</p>
+          <p class="change-desc">Identity Fusion: Secure QR-based session handover relay.</p>
         </div>
         <div class="change-item">
-          <span class="change-type type-fixed">Fixed</span>
-          <p class="change-desc">IndexedDB concurrency issue on rapid page refreshes.</p>
+          <span class="change-type type-added">Added</span>
+          <p class="change-desc">Void Dashboard: Real-time proximity radar and audit logs.</p>
         </div>
       </div>
     </section>
