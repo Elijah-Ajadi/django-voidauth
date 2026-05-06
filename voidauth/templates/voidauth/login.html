@@ -1,32 +1,169 @@
-{% extends "base.html" %}
+{% extends 'voidauth/base.html' %}
 {% load voidauth_tags %}
 
+{% block title %}Enter the Void - Login{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-tabs {
+        display: flex;
+        margin-bottom: 2rem;
+        gap: 1rem;
+    }
+    .tab {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        color: var(--void-dim);
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+    .tab.active {
+        color: white;
+        border-bottom-color: var(--void-accent);
+    }
+    #qr-section { display: none; text-align: center; }
+    #qr-code-canvas {
+        background: white;
+        padding: 1rem;
+        display: inline-block;
+        border-radius: 12px;
+        margin: 1rem 0;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="voidauth-container">
-    <h2>Login to the Void</h2>
-    <form id="voidauth-login-form">
-        <input type="text" id="username" placeholder="Username" required>
-        <button type="submit">Login</button>
-    </form>
-    <div id="login-message"></div>
+<div style="max-width: 450px; margin: 4rem auto;">
+    <div class="glass-panel">
+        <h1 style="text-align: center; margin-bottom: 1.5rem;">ENTER THE VOID</h1>
+
+        <div class="login-tabs">
+            <div class="tab active" onclick="switchTab('pulse')">VAULT LOGIN</div>
+            <div class="tab" onclick="switchTab('void')">VOID HANDSHAKE (QR)</div>
+        </div>
+        
+        <div id="pulse-section">
+            <form id="login-form">
+                <input type="text" id="username" placeholder="Username" required>
+                <button type="submit" class="btn-void" style="width: 100%;">Authorize Session</button>
+            </form>
+        </div>
+
+        <div id="qr-section">
+            <p style="font-size: 0.85rem; color: var(--void-dim);">Scan this with your authorized trusted device.</p>
+            <div id="qr-code-canvas"></div>
+            <p id="qr-status" style="font-family: monospace; font-size: 0.7rem; color: var(--void-accent);">WAITING FOR RELAY...</p>
+        </div>
+
+        <div style="margin-top: 2rem; text-align: center; font-size: 0.9rem;">
+            New to the void? <a href="{% url 'voidauth:register' %}" style="color: var(--void-accent); text-decoration: none;">Create Identity</a>
+        </div>
+    </div>
 </div>
 
-{% voidauth_scripts %}
+{% void_recovery_form %}
+
+{% endblock %}
+
+{% block extra_js %}
 <script>
-    document.getElementById('voidauth-login-form').addEventListener('submit', async (e) => {
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        if (tab === 'pulse') {
+            document.querySelector('.tab:nth-child(1)').classList.add('active');
+            document.getElementById('pulse-section').style.display = 'block';
+            document.getElementById('qr-section').style.display = 'none';
+        } else {
+            document.querySelector('.tab:nth-child(2)').classList.add('active');
+            document.getElementById('pulse-section').style.display = 'none';
+            document.getElementById('qr-section').style.display = 'block';
+            startQRHandshake();
+        }
+    }
+
+    // Standard Vault Login
+    document.getElementById('login-form').onsubmit = async (e) => {
         e.preventDefault();
         const username = document.getElementById('username').value;
-        const msgDiv = document.getElementById('login-message');
-        msgDiv.innerText = "Authenticating...";
+        const btn = e.target.querySelector('button');
+        btn.disabled = true;
+        btn.textContent = "VERIFYING...";
+
+        try {
+            const response = await VoidAuth.login(username);
+            if (response.status === 'success') {
+                window.location.href = "{% url 'voidauth:dashboard' %}";
+            } else {
+                alert("Auth Failed: " + response.message);
+                btn.disabled = false;
+                btn.textContent = "Authorize Session";
+            }
+        } catch (error) {
+            alert("Security Error: " + error.message);
+            btn.disabled = false;
+            btn.textContent = "Authorize Session";
+        }
+    };
+
+    // QR Handshake Logic
+    let pollInterval = null;
+
+    async function startQRHandshake() {
+        const qrContainer = document.getElementById('qr-code-canvas');
+        qrContainer.innerHTML = '';
         
         try {
-            await window.VoidAuth.login(username);
-            msgDiv.innerText = "Success! Redirecting...";
-            window.location.href = '/'; // Or wherever you want to redirect
-        } catch (error) {
-            msgDiv.innerText = "Error: " + error.message;
-            msgDiv.style.color = 'red';
+            const response = await fetch("{% url 'voidauth:qr_challenge' %}", { method: 'POST' });
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                // QR contains session_id and challenge
+                const qrData = JSON.stringify({
+                    sid: data.session_id,
+                    ch: data.challenge,
+                    act: 'relay'
+                });
+                
+                new QRCode(qrContainer, {
+                    text: qrData,
+                    width: 200,
+                    height: 200,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                startPolling(data.session_id);
+            }
+        } catch (e) {
+            console.error(e);
         }
-    });
+    }
+
+    function startPolling(sessionId) {
+        if (pollInterval) clearInterval(pollInterval);
+        
+        pollInterval = setInterval(async () => {
+            try {
+                const response = await fetch(`{% url 'voidauth:session_status' %}?session_id=${sessionId}`);
+                const data = await response.json();
+                
+                if (data.status === 'authorized') {
+                    clearInterval(pollInterval);
+                    document.getElementById('qr-status').textContent = "AUTHORIZED! REDIRECTING...";
+                    window.location.href = "{% url 'voidauth:dashboard' %}";
+                } else if (data.status === 'expired' || data.status === 'voided') {
+                    clearInterval(pollInterval);
+                    document.getElementById('qr-status').textContent = "SESSION EXPIRED. RESTARTING...";
+                    setTimeout(startQRHandshake, 2000);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }, 2000);
+    }
 </script>
 {% endblock %}

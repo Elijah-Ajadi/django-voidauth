@@ -1,4 +1,4 @@
-window.VoidAuth = (function() {
+window.VoidAuth = (function () {
     // Simple IndexedDB wrapper
     const dbPromise = new Promise((resolve, reject) => {
         const request = indexedDB.open('VoidAuthDB', 1);
@@ -42,7 +42,7 @@ window.VoidAuth = (function() {
     async function deriveKey(password, salt) {
         const enc = new TextEncoder();
         const keyMaterial = await window.crypto.subtle.importKey(
-            'raw', enc.encode(password), {name: 'PBKDF2'}, false, ['deriveBits', 'deriveKey']
+            'raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveBits', 'deriveKey']
         );
         return window.crypto.subtle.deriveKey(
             {
@@ -52,7 +52,7 @@ window.VoidAuth = (function() {
                 hash: 'SHA-256'
             },
             keyMaterial,
-            {name: 'AES-GCM', length: 256},
+            { name: 'AES-GCM', length: 256 },
             true,
             ['encrypt', 'decrypt']
         );
@@ -64,7 +64,7 @@ window.VoidAuth = (function() {
         const iv = window.crypto.getRandomValues(new Uint8Array(12));
         const key = await deriveKey(password, salt);
         const encrypted = await window.crypto.subtle.encrypt(
-            {name: 'AES-GCM', iv: iv},
+            { name: 'AES-GCM', iv: iv },
             key,
             privateKeyBuf
         );
@@ -82,7 +82,7 @@ window.VoidAuth = (function() {
         const ciphertext = hex2buf(blob.ciphertext);
         const key = await deriveKey(password, salt);
         const decrypted = await window.crypto.subtle.decrypt(
-            {name: 'AES-GCM', iv: iv},
+            { name: 'AES-GCM', iv: iv },
             key,
             ciphertext
         );
@@ -127,10 +127,10 @@ window.VoidAuth = (function() {
         // Generate Mnemonic & Seed
         const mnemonic = await window.bip39.generateMnemonic();
         const entropy = await window.bip39.mnemonicToEntropy(mnemonic);
-        
+
         // Hash entropy to 32 bytes for Ed25519 seed
         const seed = sodium.crypto_hash_sha256(entropy);
-        
+
         // Use 32-byte seed for Ed25519
         const keypair = sodium.crypto_sign_seed_keypair(seed);
         const publicKeyHex = buf2hex(keypair.publicKey);
@@ -206,13 +206,13 @@ window.VoidAuth = (function() {
         await window.sodium.ready;
         const sodium = window.sodium;
         const entropy = await window.bip39.mnemonicToEntropy(mnemonic);
-        
+
         // Hash entropy to 32 bytes for Ed25519 seed
         const seed = sodium.crypto_hash_sha256(entropy);
-        
+
         const keypair = sodium.crypto_sign_seed_keypair(seed);
         const privateKeyHex = buf2hex(keypair.privateKey);
-        
+
         await savePrivateKey(username, privateKeyHex);
         return login(username);
     }
@@ -221,16 +221,16 @@ window.VoidAuth = (function() {
         // Fetch recovery blob from server
         const response = await apiRequest('/voidauth/get_recovery_blob/', { username });
         if (response.error) throw new Error(response.error);
-        
+
         const blob = JSON.parse(response.recovery_blob);
-        
+
         try {
             const privateKeyBuf = await decryptPrivateKey(blob, password);
             const privateKeyHex = buf2hex(privateKeyBuf);
-            
+
             // Save local
             await savePrivateKey(username, privateKeyHex);
-            
+
             return login(username);
         } catch (err) {
             throw new Error("Invalid password or corrupted recovery blob.");

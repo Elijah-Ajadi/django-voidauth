@@ -25,3 +25,25 @@ class VoidAuthProfile(models.Model):
 
     def __str__(self):
         return f"VoidAuthProfile for {self.user.username}"
+
+class WorkstationSession(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('authorized', 'Authorized'),
+        ('voided', 'Voided'),
+        ('expired', 'Expired'),
+    ]
+
+    session_id = models.CharField(max_length=64, unique=True)
+    challenge = models.CharField(max_length=64)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField()
+
+    def is_expired(self):
+        return timezone.now() > self.expires_at
+
+    def __str__(self):
+        return f"WorkstationSession {self.session_id} - {self.status}"

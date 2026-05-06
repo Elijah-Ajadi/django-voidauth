@@ -4,9 +4,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = 'test-secret-key-do-not-use-in-production'
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*'] # Allowed for ease of demo, but Render domain will be added to CSRF
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.onrender.com',
+    'https://*.lhr.life', # Supporting the local tunnel too
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -20,6 +24,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -59,3 +64,14 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 VOIDAUTH_LEGACY_OVERRIDE = False
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'voidauth', 'static'),
+]
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}

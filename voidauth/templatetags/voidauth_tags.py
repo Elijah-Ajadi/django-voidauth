@@ -17,3 +17,15 @@ def void_secure_login_button(redirect_url='/'):
 def void_recovery_form():
     """Renders the Zero-Knowledge account recovery form."""
     return {}
+
+@register.simple_tag
+def voidauth_scripts():
+    """Renders the necessary JS library includes."""
+    from django.templatetags.static import static
+    scripts = [
+        static('voidauth/js/libsodium.js'),
+        static('voidauth/js/bip39.js'),
+        static('voidauth/js/voidauth.js'),
+    ]
+    html = "".join([f'<script src="{s}"></script>' for s in scripts])
+    return mark_safe(html)
