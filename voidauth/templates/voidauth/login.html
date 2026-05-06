@@ -53,8 +53,10 @@
         </div>
 
         <div id="qr-login-container" style="display:none; text-align: center;">
-            <div id="qr-reader" style="width: 100%; max-width: 400px; margin: 0 auto; border: 1px dashed var(--void-dim) !important; min-height: 250px; border-radius: 12px; overflow: hidden;"></div>
-            <p id="qr-status" style="margin-top: 1.5rem; color: var(--void-dim);">Point your camera at the Phone's Handover QR</p>
+            <div id="qr-reader" style="width: 100%; max-width: 400px; margin: 0 auto; border: 1px dashed var(--void-dim) !important; min-height: 250px; border-radius: 12px; overflow: hidden; position: relative; background: rgba(0,0,0,0.2);">
+                <button id="start-camera-btn" class="btn-void" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">Enable Camera</button>
+            </div>
+            <p id="qr-status" style="margin-top: 1.5rem; color: var(--void-dim);">Point your camera at the Laptop's Handover QR</p>
             <div class="loader" id="handover-loader" style="display:none; margin: 1rem auto;"></div>
         </div>
 
@@ -83,7 +85,9 @@
         vaultTab.classList.remove('active');
         loginContainer.style.display = 'none';
         qrContainer.style.display = 'block';
-        startScanner();
+        // Only show the button, don't auto-start
+        document.getElementById('start-camera-btn').style.display = 'block';
+        document.getElementById('qr-status').innerText = "Camera ready. Click to scan.";
     };
 
     vaultTab.onclick = () => {
@@ -94,37 +98,45 @@
         stopScanner();
     };
 
-    function startScanner() {
+    let html5QrCode = null;
+
+    document.getElementById('start-camera-btn').onclick = () => startScanner();
+
+    async function startScanner() {
         if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
             document.getElementById('qr-status').innerHTML = "<span style='color:red;'>SECURITY ERROR:</span> Camera requires HTTPS connection.";
             return;
         }
 
-        if (html5QrcodeScanner) return;
+        const btn = document.getElementById('start-camera-btn');
+        btn.style.display = 'none';
+        document.getElementById('qr-status').innerText = "Requesting camera access...";
+
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("qr-reader");
+        }
         
         try {
-            html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { 
-                fps: 10, 
-                qrbox: 250,
-                aspectRatio: 1.0,
-                showTorchButtonIfSupported: true
-            });
-            html5QrcodeScanner.render(onScanSuccess, (errorMessage) => {
-                // Optimization: Don't flood console with "No QR code found" errors
-                if (!errorMessage.includes("No MultiFormat Readers were able to decode")) {
-                    console.warn(`QR Scan Error: ${errorMessage}`);
-                }
-            });
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            // Use the back camera (environment) by default on mobile
+            await html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                onScanSuccess
+            );
+            document.getElementById('qr-status').innerText = "Scanning Active. Align the QR code.";
         } catch (err) {
-            console.error("Scanner Init Error:", err);
-            document.getElementById('qr-status').innerText = "Camera initialization failed. Check permissions.";
+            console.error("Scanner Error:", err);
+            document.getElementById('qr-status').innerText = "Access Denied. Please enable camera in browser settings.";
+            btn.style.display = 'block';
+            btn.innerText = "Retry Camera";
         }
     }
 
-    function stopScanner() {
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.clear().catch(err => console.error(err));
-            html5QrcodeScanner = null;
+    async function stopScanner() {
+        if (html5QrCode && html5QrCode.isScanning) {
+            await html5QrCode.stop().catch(err => console.error(err));
         }
     }
 
