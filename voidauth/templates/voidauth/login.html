@@ -3,62 +3,15 @@
 
 {% block title %}Enter the Void - Login{% endblock %}
 
-{% block extra_css %}
-<style>
-    .login-tabs {
-        display: flex;
-        margin-bottom: 2rem;
-        gap: 1rem;
-    }
-    .tab {
-        flex: 1;
-        text-align: center;
-        padding: 10px;
-        border-bottom: 2px solid transparent;
-        cursor: pointer;
-        color: var(--void-dim);
-        font-weight: 600;
-        font-size: 0.8rem;
-    }
-    .tab.active {
-        color: white;
-        border-bottom-color: var(--void-accent);
-    }
-    #qr-section { display: none; text-align: center; }
-    #qr-code-canvas {
-        background: white;
-        padding: 1rem;
-        display: inline-block;
-        border-radius: 12px;
-        margin: 1rem 0;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <div style="max-width: 450px; margin: 4rem auto;">
     <div class="glass-panel">
         <h1 style="text-align: center; margin-bottom: 1.5rem;">ENTER THE VOID</h1>
 
-        <div class="login-tabs">
-            <div id="tab-vault" class="tab active">VAULT LOGIN</div>
-            <div id="tab-qr" class="tab">VOID HANDSHAKE (QR)</div>
-        </div>
-        
-        <div id="login-form-container">
-            <form id="login-form">
-                <input type="text" id="username" placeholder="Username" required>
-                <button type="submit" class="btn-void" style="width: 100%;">Authorize Session</button>
-            </form>
-        </div>
-
-        <div id="qr-login-container" style="display:none; text-align: center;">
-            <div id="qr-reader" style="width: 100%; max-width: 400px; margin: 0 auto; border: 1px dashed var(--void-dim) !important; min-height: 250px; border-radius: 12px; overflow: hidden; position: relative; background: rgba(0,0,0,0.2);">
-                <button id="start-camera-btn" class="btn-void" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">Enable Camera</button>
-            </div>
-            <p id="qr-status" style="margin-top: 1.5rem; color: var(--void-dim);">Point your camera at the Laptop's Handover QR</p>
-            <div class="loader" id="handover-loader" style="display:none; margin: 1rem auto;"></div>
-        </div>
+        <form id="login-form">
+            <input type="text" id="username" name="username" autocomplete="username" placeholder="Username" required>
+            <button type="submit" class="btn-void" style="width: 100%;">Authorize Session</button>
+        </form>
 
         <div style="margin-top: 2rem; text-align: center; font-size: 0.9rem;">
             New to the void? <a href="{% url 'voidauth:register' %}" style="color: var(--void-accent); text-decoration: none;">Create Identity</a>
@@ -72,113 +25,6 @@
 
 {% block extra_js %}
 <script>
-    // QR Handshake Logic
-    const qrContainer = document.getElementById('qr-login-container');
-    const loginContainer = document.getElementById('login-form-container');
-    const qrTab = document.getElementById('tab-qr');
-    const vaultTab = document.getElementById('tab-vault');
-
-    let html5QrcodeScanner = null;
-
-    qrTab.onclick = () => {
-        qrTab.classList.add('active');
-        vaultTab.classList.remove('active');
-        loginContainer.style.display = 'none';
-        qrContainer.style.display = 'block';
-        // Only show the button, don't auto-start
-        document.getElementById('start-camera-btn').style.display = 'block';
-        document.getElementById('qr-status').innerText = "Camera ready. Click to scan.";
-    };
-
-    vaultTab.onclick = () => {
-        vaultTab.classList.add('active');
-        qrTab.classList.remove('active');
-        loginContainer.style.display = 'block';
-        qrContainer.style.display = 'none';
-        stopScanner();
-    };
-
-    let html5QrCode = null;
-
-    document.getElementById('start-camera-btn').onclick = () => startScanner();
-
-    async function startScanner() {
-        if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-            document.getElementById('qr-status').innerHTML = "<span style='color:red;'>SECURITY ERROR:</span> Camera requires HTTPS connection.";
-            return;
-        }
-
-        const btn = document.getElementById('start-camera-btn');
-        btn.style.display = 'none';
-        document.getElementById('qr-status').innerText = "Requesting camera access...";
-
-        if (!html5QrCode) {
-            html5QrCode = new Html5Qrcode("qr-reader");
-        }
-        
-        try {
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            
-            // Use the back camera (environment) by default on mobile
-            await html5QrCode.start(
-                { facingMode: "environment" }, 
-                config, 
-                onScanSuccess
-            );
-            document.getElementById('qr-status').innerText = "Scanning Active. Align the QR code.";
-        } catch (err) {
-            console.error("Scanner Error:", err);
-            document.getElementById('qr-status').innerText = "Access Denied. Please enable camera in browser settings.";
-            btn.style.display = 'block';
-            btn.innerText = "Retry Camera";
-        }
-    }
-
-    async function stopScanner() {
-        if (html5QrCode && html5QrCode.isScanning) {
-            await html5QrCode.stop().catch(err => console.error(err));
-        }
-    }
-
-    async function onScanSuccess(decodedText, decodedResult) {
-        console.log(`Code scanned = ${decodedText}`, decodedResult);
-        stopScanner();
-        
-        document.getElementById('qr-status').innerText = "Proof Scanned. Verifying...";
-        document.getElementById('handover-loader').style.display = 'block';
-        
-        try {
-            // The QR contains a JSON blob: {u, c, s}
-            const proof = JSON.parse(decodedText);
-            
-            const formData = new FormData();
-            formData.append('username', proof.u);
-            formData.append('challenge', proof.c);
-            formData.append('signature', proof.s);
-            
-            const response = await fetch('{% url "voidauth:qr_handover" %}', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const result = await response.json();
-            if (result.status === 'success') {
-                window.location.href = '{% url "voidauth:dashboard" %}';
-            } else {
-                alert("Handover failed: " + result.message);
-                startScanner();
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Invalid QR Code structure.");
-            startScanner();
-        } finally {
-            document.getElementById('handover-loader').style.display = 'none';
-            document.getElementById('qr-status').innerText = "Point your camera at the Phone's Handover QR";
-        }
-    }
-
-    // Standard Vault Login
     document.getElementById('login-form').onsubmit = async (e) => {
         e.preventDefault();
         const username = document.getElementById('username').value;
@@ -189,7 +35,7 @@
         try {
             const response = await VoidAuth.login(username);
             if (response.status === 'success') {
-                window.location.href = "{% url 'voidauth:dashboard' %}";
+                window.location.href = "/";
             } else {
                 alert("Auth Failed: " + response.message);
                 btn.disabled = false;

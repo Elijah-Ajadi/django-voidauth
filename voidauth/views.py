@@ -1,5 +1,4 @@
 import secrets
-import binascii
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
@@ -7,11 +6,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from django.utils import timezone
-from datetime import timedelta
-from .models import VoidAuthProfile, WorkstationSession
+from .models import VoidAuthProfile
 from .conf import voidauth_settings
-from django.contrib.auth.mixins import LoginRequiredMixin
+
 
 class ChallengeView(View):
     def post(self, request, *args, **kwargs):
@@ -24,16 +21,14 @@ class ChallengeView(View):
         if not User.objects.filter(username=username).exists():
             return JsonResponse({'status': 'error', 'error': 'User not found'}, status=404)
 
-        # Generate a 32-byte cryptographically secure random nonce
         challenge = secrets.token_hex(32)
-        
-        # Store in cache for 60 seconds (default)
         cache_key = f"voidauth_challenge_{username}"
         cache.set(cache_key, challenge, timeout=voidauth_settings.CHALLENGE_TTL)
 
         return JsonResponse({'status': 'success', 'challenge': challenge})
 
-@method_decorator(csrf_exempt, name='dispatch') # For demo/DRF compatibility, adjust as needed
+
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'voidauth/login.html')
@@ -53,6 +48,7 @@ class LoginView(View):
             return JsonResponse({'status': 'success', 'message': 'Logged in'})
         else:
             return JsonResponse({'status': 'error', 'message': 'Invalid signature or challenge'}, status=401)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class RegisterView(View):
@@ -81,11 +77,10 @@ class RegisterView(View):
             recovery_blob=recovery_blob,
             is_void_secured=True
         )
-        
-        # Log the user in after registration for immediate access to dashboard/relay
-        login(request, user, backend='voidauth.backend.VoidAuthBackend')
 
+        login(request, user, backend='voidauth.backend.VoidAuthBackend')
         return JsonResponse({'status': 'success', 'message': 'User registered'})
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class RecoveryBlobView(View):
@@ -100,72 +95,14 @@ class RecoveryBlobView(View):
             user = User.objects.get(username=username)
             profile = user.voidauth_profile
             return JsonResponse({
-                'status': 'success', 
+                'status': 'success',
                 'recovery_blob': profile.recovery_blob
             })
         except (User.DoesNotExist, Exception):
             return JsonResponse({'error': 'Recovery data not found'}, status=404)
 
-@method_decorator(csrf_exempt, name='dispatch')
-class QRChallengeView(View):
-    """Used by the Phone to get a challenge to sign."""
-    def post(self, request, *args, **kwargs):
-        challenge = secrets.token_hex(32)
-        # We don't need a session ID here yet, strictly a challenge
-        return JsonResponse({'challenge': challenge})
-
-@method_decorator(csrf_exempt, name='dispatch')
-class QRHandoverView(View):
-    """Used by the Workstation to submit the scanned proof from the Phone."""
-    def post(self, request, *args, **kwargs):
-        username = request.POST.get('username')
-        challenge = request.POST.get('challenge')
-        signature = request.POST.get('signature')
-
-        if not all([username, challenge, signature]):
-            return JsonResponse({'error': 'Missing proof data'}, status=400)
-
-        user = authenticate(request, username=username, challenge=challenge, signature=signature)
-        if user:
-            login(request, user, backend='voidauth.backend.VoidAuthBackend')
-            return JsonResponse({'status': 'success', 'message': 'Handover successful'})
-        else:
-            return JsonResponse({'status': 'error', 'message': 'Invalid signature or challenge'}, status=401)
-
-@method_decorator(csrf_exempt, name='dispatch')
-class QRRelayView(View):
-    """Legacy endpoint, no longer used in the new flow."""
-    def post(self, request, *args, **kwargs):
-        return JsonResponse({'error': 'Please use the /voidauth/qr_handover/ endpoint'}, status=400)
-
-class SessionStatusView(View):
-    def get(self, request, *args, **kwargs):
-        session_id = request.GET.get('session_id')
-        if not session_id:
-            return JsonResponse({'error': 'Session ID required'}, status=400)
-
-        try:
-            ws_session = WorkstationSession.objects.get(session_id=session_id)
-            
-            if ws_session.status == 'authorized':
-                # Log the user in on this workstation (if the status check is from the workstation)
-                if ws_session.user:
-                    login(request, ws_session.user, backend='voidauth.backend.VoidAuthBackend')
-                    return JsonResponse({'status': 'authorized', 'username': ws_session.user.username})
-            
-            return JsonResponse({'status': ws_session.status})
-        except WorkstationSession.DoesNotExist:
-            return JsonResponse({'error': 'Invalid session'}, status=404)
-
-class DashboardView(LoginRequiredMixin, View):
-    def get(self, request, *args, **kwargs):
-        return render(request, 'voidauth/dashboard.html')
 
 class LogoutView(View):
     def get(self, request, *args, **kwargs):
         logout(request)
         return JsonResponse({'status': 'success', 'message': 'Logged out'})
-
-class RelayView(LoginRequiredMixin, View):
-    def get(self, request, *args, **kwargs):
-        return render(request, 'voidauth/relay.html')
