@@ -1,0 +1,102 @@
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const signupForm = document.querySelector('form[method="post"]');
+    if (!signupForm) return;
+
+    const passwordFields = signupForm.querySelectorAll('input[type="password"]');
+    if (passwordFields.length < 1) return;
+
+    signupForm.addEventListener('submit', async (e) => {
+        if (signupForm.dataset.voidProcessing) return;
+        e.preventDefault();
+        
+        console.log("VoidAuth Intercepting Signup...");
+        
+        const usernameField = signupForm.querySelector('input[name="username"]');
+        const emailField = signupForm.querySelector('input[name*="email"]');
+        const passwordField = passwordFields[0];
+        
+        if (!usernameField || !passwordField) {
+            console.warn("Required fields missing for interception.");
+            return signupForm.submit();
+        }
+
+        const username = usernameField.value;
+        const email = emailField ? emailField.value : '';
+        const password = passwordField.value;
+
+        signupForm.dataset.voidProcessing = "true";
+        const submitBtn = signupForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Submit';
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '🛡️ Securing Account...';
+        }
+
+        try {
+            console.log("1. Generating Local Vault...");
+            const result = await VoidAuth.register(username, email, password, true);
+            
+            // Ask for Passkey Registration
+            let passkeyRegistered = false;
+            if (confirm("🛡️ Secure your account with a hardware Passkey for faster, zero-typing login?")) {
+                try {
+                    console.log("2. Registering Passkey...");
+                    await VoidAuth.registerPasskey(username, email, "Primary Device");
+                    passkeyRegistered = true;
+                } catch (pkErr) {
+                    console.warn("Passkey registration skipped or failed:", pkErr);
+                    if (!confirm("Passkey registration failed. Continue with Vault-only security?")) {
+                        throw pkErr;
+                    }
+                }
+            }
+
+            console.log("3. Submitting Signup Background Fetch...");
+            const formData = new FormData(signupForm);
+            formData.append('void_public_key', result.publicKey);
+            formData.append('void_recovery_blob', result.recoveryBlob);
+
+            const response = await fetch(signupForm.action || window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error("Background Signup Failed:", errText);
+                alert("Account creation failed. Please check the form and try again.");
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }
+                delete signupForm.dataset.voidProcessing;
+                return;
+            }
+
+            console.log("4. Initializing Recovery Modal...");
+            if (window.showVoidRecovery) {
+                window.showVoidRecovery(
+                    result.mnemonic, 
+                    signupForm.getAttribute('data-redirect') || '/',
+                    username,
+                    email
+                );
+            } else {
+                console.warn("window.showVoidRecovery not found! Check if recovery_modal snippet is loaded.");
+                window.location.href = signupForm.getAttribute('data-redirect') || '/';
+            }
+
+        } catch (err) {
+            console.error("VoidAuth Registration Error:", err);
+            alert("Security Hardening Error: " + err.message);
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+            delete signupForm.dataset.voidProcessing;
+        }
+    });
+});
+</script>

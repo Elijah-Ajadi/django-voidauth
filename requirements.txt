@@ -1,5 +1,7 @@
 django>=3.2
 cryptography>=3.4
+django-ratelimit>=4.0.0
+webauthn>=2.0.0
 gunicorn
 whitenoise
 dj-database-url

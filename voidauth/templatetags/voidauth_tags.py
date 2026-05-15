@@ -18,6 +18,11 @@ def void_recovery_form():
     """Renders the Zero-Knowledge account recovery form."""
     return {}
 
+@register.inclusion_tag('voidauth/snippets/register_interceptor.html')
+def void_registration_interceptor():
+    """Renders the JS interceptor for standard registration forms."""
+    return {}
+
 @register.simple_tag
 def voidauth_scripts():
     """Renders the necessary JS library includes."""

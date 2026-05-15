@@ -1,25 +1,25 @@
 <div id="void-recovery-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
-    <div class="max-w-md w-full bg-slate-900 border border-primary/30 rounded-3xl p-8 space-y-6 shadow-2xl shadow-primary/10 text-white">
+    <div class="max-w-md w-full bg-slate-900 border border-white/20 rounded-3xl p-8 space-y-6 shadow-2xl shadow-blue-500/10 text-white">
         <div class="text-center space-y-2">
-            <div class="size-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+            <div class="size-12 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
             </div>
             <h2 class="text-xl font-bold tracking-tight">Vault Identity Generated</h2>
-            <p class="text-xs text-slate-400">Save these 12 words. They are the <span class="text-primary font-bold">ONLY</span> way to recover your account.</p>
+            <p class="text-xs text-slate-400">Save these 12 words. They are the <span class="text-blue-400 font-bold">ONLY</span> way to recover your account.</p>
         </div>
 
-        <div id="void-mnemonic-display" class="grid grid-cols-3 gap-2 p-4 bg-black/50 rounded-2xl border border-slate-800 font-mono text-[10px] text-primary select-all">
+        <div id="void-mnemonic-display" class="grid grid-cols-3 gap-2 p-4 bg-black/50 rounded-2xl border border-slate-800 font-mono text-[10px] text-blue-200 select-all">
             <!-- Words injected via JS -->
         </div>
 
-        <button id="void-ack-recovery" class="w-full py-3 bg-primary text-black font-bold rounded-full text-sm hover:bg-neon-green transition-all uppercase tracking-widest">
+        <button id="void-ack-recovery" class="w-full py-3 bg-blue-500 text-white font-bold rounded-full text-sm hover:bg-blue-400 transition-all uppercase tracking-widest">
             I have saved my key
         </button>
     </div>
 </div>
 
 <script>
-window.showVoidRecovery = function(mnemonic, redirectUrl) {
+window.showVoidRecovery = function(mnemonic, redirectUrl, username, email) {
     const modal = document.getElementById('void-recovery-modal');
     const display = document.getElementById('void-mnemonic-display');
     const btn = document.getElementById('void-ack-recovery');
@@ -35,7 +35,28 @@ window.showVoidRecovery = function(mnemonic, redirectUrl) {
     `).join('');
     
     modal.classList.remove('hidden');
-    btn.onclick = () => {
+    btn.onclick = async () => {
+        // AGGRESSIVE DEBUG: Confirm the click is registered
+        alert("Mnemonic Verified. Initiating Biometric Hardware Link for: " + username);
+        
+        btn.disabled = true;
+        btn.innerHTML = '🛡️ Connecting Secure Chip...';
+        
+        if (!window.PublicKeyCredential) {
+             alert("ERROR: Browser reports no WebAuthn support. Check if you are on a Secure Context (HTTPS/Localhost).");
+        } else if (!username) {
+             alert("ERROR: Internal Context Missing (Username). Enrollment aborted.");
+        } else {
+            try {
+                console.log("Triggering registerPasskey for:", username);
+                await VoidAuth.registerPasskey(username, email || username);
+                alert("✅ SUCCESS: Passkey Created! You can now login with zero typing.");
+            } catch (pErr) {
+                console.error("Passkey enrollment failed:", pErr);
+                alert("🚨 Passkey Enrollment FAILED\n\nReason: " + pErr.message + "\n\nDon't worry! Your account is still secured by the Mnemonic Vault. You can login with your master password.");
+            }
+        }
+        
         window.location.href = redirectUrl;
     };
 };

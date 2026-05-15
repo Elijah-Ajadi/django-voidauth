@@ -1,6 +1,6 @@
 # 🌌 django-voidauth
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blueviolet.svg?style=flat-square)](https://github.com/ELijah-Ajadi/django-voidauth)
+[![Version](https://img.shields.io/badge/version-0.1.1-blueviolet.svg?style=flat-square)](https://github.com/ELijah-Ajadi/django-voidauth)
 [![Django](https://img.shields.io/badge/Django-3.2+-092e20.svg?style=flat-square)](https://www.djangoproject.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 
@@ -22,6 +22,7 @@ Traditional authentication systems rely on storing secrets (hashed passwords) on
 ## 🚀 Key Features
 
 - **💎 Ed25519 Proofs:** Ultra-fast, high-security asymmetric signatures for every login.
+- **🛡️ View Shield:** Indentation-agnostic defensive layer for registration views, ensuring cryptographic keys are verified even in complex nested code.
 - **🧩 BIP-39 Recovery:** Human-readable 12-word mnemonics for account restoration.
 - **🔒 Local Vault:** Private keys are stored in the browser's `IndexedDB`, never in cookies or local storage.
 - **📦 Recovery Blobs:** AES-GCM encrypted private key backups stored on-server for multi-device sync.
@@ -204,6 +205,8 @@ The Architect will now:
 - 🔍 **Deep Scan**: Recursively analyze your project structure to find your specific auth templates.
 - 🎨 **Smart Patching**: Use the built-in `{% voidauth_tags %}` for a clean, modular integration.
 - 🧬 **Field Detection**: Automatically detect your form field names (e.g., `password1` vs `password`) to ensure the JavaScript works out-of-the-box.
+- 🩹 **Surgical Integration**: Intelligent indentation-agnostic patching that respects your code style and avoids breaking complex view logic.
+- 🛡️ **View Shield Injection**: Automatically injects defensive key verification into your registration views to eliminate `IntegrityError` crashes.
 - 🩹 **Non-Destructive**: Appends logic to the end of your files instead of overwriting them.
 
 ---

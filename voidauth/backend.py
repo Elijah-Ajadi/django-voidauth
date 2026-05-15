@@ -10,21 +10,34 @@ User = get_user_model()
 
 class VoidAuthBackend(BaseBackend):
     def authenticate(self, request, username=None, signature=None, challenge=None, **kwargs):
+        import logging
+        logger = logging.getLogger(__name__)
+
         if not username or not signature or not challenge:
+            logger.warning(f"Auth failed: Missing fields. fields={[username, signature[:8] if signature else None, challenge]}")
             return None
 
         try:
             user = User.objects.get(username=username)
             profile = user.voidauth_profile
         except (User.DoesNotExist, VoidAuthProfile.DoesNotExist):
+            logger.warning(f"Auth failed: User or Profile not found for {username}")
             return None
 
         # Verify challenge exists in cache and matches
         cache_key = f"voidauth_challenge_{username}"
         stored_challenge = cache.get(cache_key)
 
-        if not stored_challenge or stored_challenge != challenge:
+        if not stored_challenge:
+             logger.warning(f"Auth failed: No stored challenge for {username}. Expired?")
+             return None
+
+        if stored_challenge != challenge:
+            logger.warning(f"Auth failed: Challenge mismatch for {username}. Sent: {challenge}, Stored: {stored_challenge}")
             return None
+
+        # Clean up challenge immediately
+        cache.delete(cache_key)
 
         # Verify Signature
         try:
@@ -35,11 +48,9 @@ class VoidAuthBackend(BaseBackend):
             verify_key = ed25519.Ed25519PublicKey.from_public_bytes(public_key_bytes)
             verify_key.verify(signature_bytes, challenge_bytes)
             
-            # Clean up challenge after successful use
-            cache.delete(cache_key)
-            
             return user
-        except Exception:
+        except Exception as e:
+            logger.error(f"Auth failed: Signature verification error for {username}. Error: {str(e)}")
             return None
 
     def get_user(self, user_id):
